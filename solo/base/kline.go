@@ -13,35 +13,37 @@ type KLineHandler struct {
 	MKData map[string]*KLineTypeData
 }
 
-func NewKLineHandler(symbol string) *KLineHandler {
-
-	ktyp := NewKLineTypeData()
-
-	kd1min := NewKLineData(60)
-	kd5min := NewKLineData(300)
-	kd15min := NewKLineData(900)
-	kd30min := NewKLineData(1800)
-	kd1h := NewKLineData(3600)
-	kd1d := NewKLineData(86400)
-
-	ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_1MIN] = kd1min
-	ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_5MIN] = kd5min
-	ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_15MIN] = kd15min
-	ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_30MIN] = kd30min
-	ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_HOUR] = kd1h
-	ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_DAY] = kd1d
+func NewKLineHandler() *KLineHandler {
 
 	kHandle := new(KLineHandler)
 
 	kHandle.MKData = make(map[string]*KLineTypeData)
 
-	kHandle.MKData[symbol] = ktyp
-
 	return kHandle
-
 }
 
 func (h *KLineHandler) Set(symbol string, typ protocol.KLineType, klDetail KLineDetail) {
+
+	if h.MKData[symbol] == nil {
+
+		ktyp := NewKLineTypeData()
+
+		kd1min := NewKLineData(60)
+		kd5min := NewKLineData(300)
+		kd15min := NewKLineData(900)
+		kd30min := NewKLineData(1800)
+		kd1h := NewKLineData(3600)
+		kd1d := NewKLineData(86400)
+
+		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_1MIN] = kd1min
+		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_5MIN] = kd5min
+		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_15MIN] = kd15min
+		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_30MIN] = kd30min
+		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_HOUR] = kd1h
+		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_DAY] = kd1d
+
+		h.MKData[symbol] = ktyp
+	}
 	h.MKData[symbol].MKLineData[typ].CleanKLineData(klDetail)
 }
 

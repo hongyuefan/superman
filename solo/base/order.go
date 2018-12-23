@@ -32,7 +32,7 @@ func (o *Order) LoadOrders() error {
 	for _, result := range results {
 		o.MOrder[result.OrderId] = result
 	}
-	return
+	return nil
 }
 
 func (o *Order) GetOrder(orderId, insId string) (okex.SpotOrderListResult, error) {

@@ -8,13 +8,13 @@ import (
 	"strings"
 	"time"
 
+	simplejson "github.com/bitly/go-simplejson"
+	"github.com/gorilla/websocket"
+	"github.com/hongyuefan/superman/config"
 	"github.com/hongyuefan/superman/logs"
 	"github.com/hongyuefan/superman/models"
 	"github.com/hongyuefan/superman/protocol"
 	"github.com/hongyuefan/superman/utils"
-
-	simplejson "github.com/bitly/go-simplejson"
-	"github.com/gorilla/websocket"
 )
 
 type OkExChange struct {
