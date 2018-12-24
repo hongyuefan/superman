@@ -48,7 +48,16 @@ func (h *KLineHandler) Set(symbol string, typ protocol.KLineType, klDetail KLine
 }
 
 func (h *KLineHandler) Get(symbol string, typ protocol.KLineType, index int) (KLineDetail, bool) {
-	return h.MKData[symbol].MKLineData[typ].GetKLineData(index)
+
+	ktData, ok := h.MKData[symbol]
+	if !ok {
+		return KLineDetail{}, ok
+	}
+	klData, ok := ktData.MKLineData[typ]
+	if !ok {
+		return KLineDetail{}, ok
+	}
+	return klData.GetKLineData(index)
 }
 
 func (h *KLineHandler) Handler(typ protocol.KLineType, symbol, time, open, high, low, close, deal string) {

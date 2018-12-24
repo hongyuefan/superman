@@ -35,23 +35,42 @@ func (o *Order) LoadOrders() error {
 	return nil
 }
 
-func (o *Order) GetOrder(orderId, insId string) (okex.SpotOrderListResult, error) {
+type OrderQuery struct {
+	Symbol  string
+	OrderId string
+}
+
+func (o *Order) GetPendingOrderIds() []OrderQuery {
+	o.lock.RLock()
+	defer o.lock.RUnlock()
+
+	var orderQuerys []OrderQuery
+
+	for _, order := range o.MOrder {
+
+		orderQuerys = append(orderQuerys, OrderQuery{Symbol: order.InstrumentId, OrderId: order.OrderId})
+	}
+
+	return orderQuerys
+}
+
+func (o *Order) GetOrder(symbol, orderId string) (okex.SpotOrderListResult, error) {
 
 	param := okex.SpotGetOrderParams{
 		OrderId:      orderId,
-		InstrumentId: insId,
+		InstrumentId: symbol,
 	}
 
 	return o.client.SpotGetOrder(param)
 }
 
-func (o *Order) DoOrder(oid, typ, side, insId, margin, price, size, notional string) (okex.SpotOrderResult, error) {
+func (o *Order) DoOrder(oid, typ, side, symbol, margin, price, size, notional string) (okex.SpotOrderResult, error) {
 
 	param := okex.SpotOrderParams{
 		ClientId:     oid,
 		Type:         typ,
 		Side:         side,
-		InstrumentId: insId,
+		InstrumentId: symbol,
 		Margin:       margin,
 		Price:        price,
 		Size:         size,
@@ -60,20 +79,20 @@ func (o *Order) DoOrder(oid, typ, side, insId, margin, price, size, notional str
 	return o.client.SpotDoOrder(param)
 }
 
-func (o *Order) CanselOrder(insId, clId, orderId string) (okex.SpotOrderResult, error) {
+func (o *Order) CanselOrder(symbol, clId, orderId string) (okex.SpotOrderResult, error) {
 
 	param := okex.SpotCanselOrderParams{
-		InstrumentId: insId,
+		InstrumentId: symbol,
 		ClientId:     clId,
 		OrderId:      orderId,
 	}
 	return o.client.SpotCanselOrder(param)
 }
 
-func (o *Order) QueryPendingOrders(insId, from, to, limit string) ([]okex.SpotOrderListResult, error) {
+func (o *Order) QueryPendingOrders(symbol, from, to, limit string) ([]okex.SpotOrderListResult, error) {
 
 	param := okex.SpotGetPendingOrderParams{
-		InstrumentId: insId,
+		InstrumentId: symbol,
 		From:         from,
 		To:           to,
 		Limit:        limit,

@@ -10,7 +10,7 @@ func TestBench(t *testing.T) {
 
 	symbol := "btc-usdt"
 
-	handle := NewKLineHandler(symbol)
+	handle := NewKLineHandler()
 
 	handle.Handler(protocol.SPIDER_TYPE_KLINE_1MIN, symbol, "0", "1.1", "1.9", "1.0", "1.5", "1.4")
 

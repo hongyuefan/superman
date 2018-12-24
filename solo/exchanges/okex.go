@@ -5,17 +5,18 @@ import (
 	"compress/flate"
 	"fmt"
 	"io/ioutil"
-	"strings"
+
 	"time"
 
 	simplejson "github.com/bitly/go-simplejson"
 	"github.com/gorilla/websocket"
 	"github.com/hongyuefan/superman/config"
 	"github.com/hongyuefan/superman/logs"
-	"github.com/hongyuefan/superman/models"
-	"github.com/hongyuefan/superman/protocol"
+
 	"github.com/hongyuefan/superman/utils"
 )
+
+type MsgHandler func(*simplejson.Json)
 
 type OkExChange struct {
 	wsUrl         string
@@ -24,28 +25,26 @@ type OkExChange struct {
 	okexKlineTime []string
 	okexDepth     []string
 	hbInterval    int64
+
+	msgHandler MsgHandler
 }
 
-func NewOkExChange() Exchange {
+func NewOkExChange(msgHandler MsgHandler) *OkExChange {
 	return &OkExChange{
-		mapErr: make(map[int]string),
+		mapErr:     make(map[int]string),
+		msgHandler: msgHandler,
 	}
 }
 
 func (t *OkExChange) Init() error {
 
-	spider, err := models.GetSpiderByName("okex")
+	utils.InitCnf()
 
-	if err != nil {
-		logs.Error("Get SqlDB Spider Okex Error:%s", err.Error())
-		return err
-	}
-
-	t.wsUrl = spider.WsUrl
-	t.okexSymbols = utils.ParseStringToArry(spider.Symbols, ",")
-	t.okexKlineTime = utils.ParseStringToArry(spider.KlineTime, ",")
-	t.okexDepth = utils.ParseStringToArry(spider.Depth, ",")
-	t.hbInterval = spider.HeartBeat
+	t.wsUrl = config.T.WsUrl
+	t.okexSymbols = utils.ParseStringToArry(config.T.Symbol, ",")
+	t.okexKlineTime = utils.ParseStringToArry(config.T.Kline, ",")
+	t.okexDepth = utils.ParseStringToArry(config.T.Depth, ",")
+	t.hbInterval = config.T.HeartBeat
 
 	utils.InitOkexErrorMap(t.mapErr)
 
@@ -72,7 +71,7 @@ func (t *OkExChange) RunImpl(symbol string) {
 		rgc := make(chan int)
 		wgc := make(chan int)
 
-		go readLoop(c, rgc, symbol)
+		go t.readLoop(c, rgc, symbol)
 		go writeLoop(c, wgc, symbol, t.okexKlineTime, t.okexDepth, t.hbInterval)
 
 	L:
@@ -95,17 +94,7 @@ func (t *OkExChange) RunImpl(symbol string) {
 	}
 }
 
-func gzipDecode(in []byte) ([]byte, error) {
-
-	reader := flate.NewReader(bytes.NewReader(in))
-
-	defer reader.Close()
-
-	return ioutil.ReadAll(reader)
-
-}
-
-func readLoop(c *websocket.Conn, rgc chan int, symbol string) {
+func (t *OkExChange) readLoop(c *websocket.Conn, rgc chan int, symbol string) {
 
 	defer close(rgc)
 
@@ -147,10 +136,7 @@ func readLoop(c *websocket.Conn, rgc chan int, symbol string) {
 			return
 		}
 
-		if _, err := ParseReply(js); err != nil {
-			logs.Error("%s_%s sub ws parse json error:%s, json: %s", symbol, err.Error(), message)
-			return
-		}
+		t.msgHandler(js)
 	}
 }
 
@@ -178,6 +164,16 @@ func writeLoop(c *websocket.Conn, wgc chan int, symbol string, kline, depth []st
 
 		tc.Reset(time.Duration(hb) * time.Second)
 	}
+}
+
+func gzipDecode(in []byte) ([]byte, error) {
+
+	reader := flate.NewReader(bytes.NewReader(in))
+
+	defer reader.Close()
+
+	return ioutil.ReadAll(reader)
+
 }
 
 func subSpotTicker(c *websocket.Conn, symbol string) {
@@ -212,104 +208,4 @@ func subSpotKline(c *websocket.Conn, symbol string, keys []string) {
 
 		c.WriteMessage(websocket.TextMessage, []byte(kline))
 	}
-}
-
-func ParseReply(js *simplejson.Json) (bool, error) {
-
-	array, err := js.Array()
-
-	if err != nil {
-		return false, err
-	}
-
-	length := len(array)
-
-	for index := 0; index < length; index++ {
-
-		subJs := js.GetIndex(index)
-
-		data, ok := subJs.Get("data").CheckGet("errorcode")
-		if ok {
-			return false, fmt.Errorf("get ticker data error")
-		}
-
-		channel := subJs.Get("channel").MustString()
-
-		data = subJs.Get("data")
-
-		if err := parseDataDetails(channel, data); err != nil {
-			return false, err
-		}
-	}
-
-	return true, nil
-}
-
-func parseDataDetails(channel string, js *simplejson.Json) error {
-
-	if strings.Contains(channel, "ticker") {
-
-		okexSpiderData(protocol.SPIDER_TYPE_TICKER, js.MustString())
-
-	}
-
-	if strings.Contains(channel, "depth") {
-
-		typ := getdpkind(channel)
-
-		if typ != 0 {
-			okexSpiderData(typ, js.MustString())
-		}
-	}
-
-	if strings.Contains(channel, "kline") {
-
-		typ := getklkind(channel)
-
-		if typ != 0 {
-			okexSpiderData(typ, js.MustString())
-		}
-	}
-
-	return nil
-}
-
-func getdpkind(ch string) int {
-
-	m := map[string]int{
-		"depth_5": protocol.SPIDER_TYPE_DEPTH_5,
-	}
-
-	for k, v := range m {
-		if strings.Contains(ch, k) {
-			return v
-		}
-	}
-
-	return 0
-}
-
-func getklkind(ch string) int {
-
-	m := map[string]int{
-		"1min":  protocol.SPIDER_TYPE_KLINE_1MIN,
-		"5min":  protocol.SPIDER_TYPE_KLINE_5MIN,
-		"15min": protocol.SPIDER_TYPE_KLINE_15MIN,
-		"30min": protocol.SPIDER_TYPE_KLINE_30MIN,
-		"1hour": protocol.SPIDER_TYPE_KLINE_HOUR,
-		"_day":  protocol.SPIDER_TYPE_KLINE_DAY,
-		"week":  protocol.SPIDER_TYPE_KLINE_WEEK,
-	}
-
-	for k, v := range m {
-		if strings.Contains(ch, k) {
-			return v
-		}
-	}
-
-	return 0
-}
-
-func okexSpiderData(typ int, msg string) error {
-	return utils.PackAndReplyToBroker(protocol.TOPIC_OKEX_SPIDER_DATA, "okex", typ, msg)
 }
