@@ -58,6 +58,27 @@ const (
 	SPIDER_TYPE_KLINE_WEEK
 )
 
+func (t KLineType) String() string {
+	switch t {
+	case SPIDER_TYPE_KLINE_1MIN:
+		return "1min"
+	case SPIDER_TYPE_KLINE_5MIN:
+		return "5min"
+	case SPIDER_TYPE_KLINE_15MIN:
+		return "15min"
+	case SPIDER_TYPE_KLINE_30MIN:
+		return "30min"
+	case SPIDER_TYPE_KLINE_HOUR:
+		return "hour"
+	case SPIDER_TYPE_KLINE_DAY:
+		return "day"
+	case SPIDER_TYPE_KLINE_WEEK:
+		return "week"
+	default:
+		return "undefine"
+	}
+}
+
 func (t KLineType) NoticeType() NoticeType {
 	switch t {
 	case SPIDER_TYPE_KLINE_1MIN:

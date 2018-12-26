@@ -120,7 +120,7 @@ func (t *OkExChange) readLoop(c *websocket.Conn, rgc chan int, symbol string) {
 			}
 		}
 
-		fmt.Println("ws receive message: ", string(message))
+		//fmt.Println("ws receive message: ", string(message))
 
 		// 去除心跳回应
 		if len(message) == len(`{"event":"pong"}`) {

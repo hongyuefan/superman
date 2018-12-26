@@ -7,7 +7,7 @@
 	"end_point":"https://www.okex.com/",
 	"ws_url":"wss://real.okex.com:10441/websocket",
 	"symbols":"eth_usdt",
-	"klines":"1min,5min,15min,30min,1hour,day,week",
+	"klines":"1min,5min,15min,30min,1hour,day",
 	"depth":"5",
 	"heart_beat":5
 }

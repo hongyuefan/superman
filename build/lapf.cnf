@@ -1,0 +1,13 @@
+{
+    "log": "../log",
+	"sqlcon":"",
+	"api_key":"",
+	"secret_key":"",
+	"pass_phrase":"",
+	"end_point":"",
+	"ws_url":"",
+	"symbols":"",
+	"klines":"",
+	"depth":"",
+	"heart_beat":5
+}

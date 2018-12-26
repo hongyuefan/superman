@@ -115,6 +115,16 @@ func (h *History) CleanMACD(intervel int64, curEMA EMA, macd *MACD) {
 	h.nowEMA = curEMA
 }
 
+func (h *History) String() string {
+
+	var macds []MACD
+
+	for _, macd := range h.map_MACD {
+		macds = append(macds, *macd)
+	}
+	return fmt.Sprintf("preEMA:%v,nowEMA:%v,MACD_length:%v,MACD:%v", h.preEMA, h.nowEMA, len(h.map_MACD), macds)
+}
+
 func (s *StratMacd) Init() {
 
 	s.skl.Init()
@@ -179,6 +189,8 @@ func (s *StratMacd) Calculation(symbol string, kl protocol.KLineType) error {
 
 	his.CleanMACD(mapIntervel[kl], EMA{EMA12: curEMA12, EMA26: curEMA26}, curMacd)
 
+	fmt.Println("Calculation Symbol", symbol, "kline type", kl.String(), "content:", his.String())
+
 	return nil
 }
 
@@ -202,8 +214,6 @@ func (s *StratMacd) OnClose() {
 }
 
 func (s *StratMacd) dispatchMsg(symbol string, notice protocol.NoticeType) {
-
-	fmt.Println("recv notice : %s,%v", symbol, notice)
 
 	switch notice {
 	case protocol.NOTICE_KLINE_1MIN:
