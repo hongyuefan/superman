@@ -118,12 +118,12 @@ func (k *KLineData) CleanKLineData(kdetail KLineDetail) {
 
 	if len(k.MKDetail) == 0 {
 
-		k.MKDetail[1] = kdetail
+		k.MKDetail[0] = kdetail
 
 		return
 	}
 
-	curDetail, ok := k.MKDetail[1]
+	curDetail, ok := k.MKDetail[0]
 	if !ok {
 		panic("kline clean error")
 	}
@@ -131,7 +131,7 @@ func (k *KLineData) CleanKLineData(kdetail KLineDetail) {
 	if (kdetail.Time - curDetail.Time) > k.KIntervel {
 		k.ReSort(kdetail)
 	} else {
-		k.UpdateKLineData(1, kdetail)
+		k.UpdateKLineData(0, kdetail)
 	}
 
 	return
@@ -142,16 +142,16 @@ func (k *KLineData) ReSort(kdetail KLineDetail) {
 	nIndex := len(k.MKDetail)
 
 	if nIndex < MaxLen {
-		for i := nIndex; i > 0; i-- {
+		for i := nIndex - 1; i >= 0; i-- {
 			k.MKDetail[i+1] = k.MKDetail[i]
 		}
 
 	} else {
-		for i := nIndex; i > 1; i-- {
+		for i := nIndex - 1; i >= 1; i-- {
 			k.MKDetail[i] = k.MKDetail[i-1]
 		}
 	}
-	k.MKDetail[1] = kdetail
+	k.MKDetail[0] = kdetail
 
 	return
 }

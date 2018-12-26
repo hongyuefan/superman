@@ -13,25 +13,29 @@ import (
 	"github.com/okcoin-okex/open-api-v3-sdk/okex-go-sdk-api"
 )
 
+type Notice struct {
+	Symbol string
+	Notice protocol.NoticeType
+}
+
 type BaseData struct {
 	KLine   *KLineHandler
 	Orders  *Order
 	Wallets *Wallet
 	TTicker *Ticker
+
+	ChanNotice chan Notice
 }
 
 func NewBaseData() *BaseData {
 	return &BaseData{
-		KLine:   NewKLineHandler(),
-		TTicker: NewTicker(),
+		KLine:      NewKLineHandler(),
+		TTicker:    NewTicker(),
+		ChanNotice: make(chan Notice, 1024),
 	}
 }
 
 func (b *BaseData) Init() {
-
-	utils.InitCnf()
-
-	utils.InitLogger("solo", logs.LevelInfo)
 
 	client := okex.NewClient(okex.Config{ApiKey: config.T.ApiKey, SecretKey: config.T.ScretKey, Passphrase: config.T.PassPhrase, Endpoint: config.T.EndPoint, TimeoutSecond: 45, I18n: "en_US", IsPrint: false})
 
@@ -83,16 +87,6 @@ func (b *BaseData) Handler(js *simplejson.Json) {
 	return
 }
 
-func parseSymbol(channel string) (string, error) {
-
-	strArry := utils.ParseStringToArry(channel, "_")
-
-	if len(strArry) < 5 {
-		return "", fmt.Errorf("channel not right %s", channel)
-	}
-	return strArry[3] + "_" + strArry[4], nil
-}
-
 func (b *BaseData) parseDataDetails(channel string, js *simplejson.Json) error {
 
 	symbol, err := parseSymbol(channel)
@@ -108,7 +102,6 @@ func (b *BaseData) parseDataDetails(channel string, js *simplejson.Json) error {
 		if err != nil {
 			return err
 		}
-
 		timestamp, _ := (mticker["timestamp"].(json.Number)).Int64()
 
 		b.TTicker.SetTicker(symbol, TickerDetail{
@@ -123,13 +116,16 @@ func (b *BaseData) parseDataDetails(channel string, js *simplejson.Json) error {
 			DayLow:    mticker["dayLow"].(string),
 			TimeStamp: timestamp,
 		})
-	}
 
-	if strings.Contains(channel, "depth") {
+		b.PutNotice(symbol, protocol.NOTICE_TICKER)
 
-	}
+	} else if strings.Contains(channel, "depth") {
 
-	if strings.Contains(channel, "kline") {
+		typ := getdpkind(channel)
+
+		b.PutNotice(symbol, typ.NoticeType())
+
+	} else if strings.Contains(channel, "kline") {
 
 		typ := getklkind(channel)
 
@@ -150,9 +146,29 @@ func (b *BaseData) parseDataDetails(channel string, js *simplejson.Json) error {
 			b.KLine.Handler(typ, symbol, v[0].(string), v[1].(string), v[2].(string), v[3].(string), v[4].(string), v[5].(string))
 		}
 
+		b.PutNotice(symbol, typ.NoticeType())
+
 	}
 
 	return nil
+}
+
+func (b *BaseData) PutNotice(symbol string, notice protocol.NoticeType) {
+	select {
+	case b.ChanNotice <- Notice{Notice: notice, Symbol: symbol}:
+	default:
+		logs.Error("BaseData Notice Chan Has Full!!")
+	}
+}
+
+func parseSymbol(channel string) (string, error) {
+
+	strArry := utils.ParseStringToArry(channel, "_")
+
+	if len(strArry) < 5 {
+		return "", fmt.Errorf("channel not right %s", channel)
+	}
+	return strArry[3] + "_" + strArry[4], nil
 }
 
 func getdpkind(ch string) protocol.DepthType {

@@ -45,9 +45,9 @@ func TestBenchMain(t *testing.T) {
 
 	base.Handler(js)
 
-	d1, ok1 := base.KLine.Get("bch_btc", protocol.SPIDER_TYPE_KLINE_1MIN, 1)
-	d2, ok2 := base.KLine.Get("bch_btc", protocol.SPIDER_TYPE_KLINE_1MIN, 2)
-	d3, ok3 := base.KLine.Get("bch_btc", protocol.SPIDER_TYPE_KLINE_1MIN, 3)
+	d1, ok1 := base.KLine.Get("bch_btc", protocol.SPIDER_TYPE_KLINE_1MIN, 0)
+	d2, ok2 := base.KLine.Get("bch_btc", protocol.SPIDER_TYPE_KLINE_1MIN, 1)
+	d3, ok3 := base.KLine.Get("bch_btc", protocol.SPIDER_TYPE_KLINE_1MIN, 2)
 
 	t.Log(d1, ok1, d2, ok2, d3, ok3)
 

@@ -2,6 +2,22 @@ package protocol
 
 const TM_LAYOUT_STR = "2006-01-02 15:04:05"
 
+type NoticeType int
+
+const (
+	NOTICE_TICKER NoticeType = iota
+	NOTICE_DEPTH_5
+	NOTICE_DEPTH_10
+	NOTICE_KLINE_1MIN
+	NOTICE_KLINE_5MIN
+	NOTICE_KLINE_15MIN
+	NOTICE_KLINE_30MIN
+	NOTICE_KLINE_HOUR
+	NOTICE_KLINE_DAY
+	NOTICE_KLINE_WEEK
+	NOTICE_UNDEF
+)
+
 type TickerType int
 type DepthType int
 type KLineType int
@@ -10,9 +26,27 @@ const (
 	SPIDER_TYPE_TICKER TickerType = iota + 100
 )
 
+func (t TickerType) NoticeType() NoticeType {
+	switch t {
+	case SPIDER_TYPE_TICKER:
+		return NOTICE_TICKER
+	default:
+		return NOTICE_UNDEF
+	}
+}
+
 const (
 	SPIDER_TYPE_DEPTH_5 DepthType = iota + 200
 )
+
+func (t DepthType) NoticeType() NoticeType {
+	switch t {
+	case SPIDER_TYPE_DEPTH_5:
+		return NOTICE_DEPTH_5
+	default:
+		return NOTICE_UNDEF
+	}
+}
 
 const (
 	SPIDER_TYPE_KLINE_1MIN KLineType = iota + 300
@@ -23,6 +57,27 @@ const (
 	SPIDER_TYPE_KLINE_DAY
 	SPIDER_TYPE_KLINE_WEEK
 )
+
+func (t KLineType) NoticeType() NoticeType {
+	switch t {
+	case SPIDER_TYPE_KLINE_1MIN:
+		return NOTICE_KLINE_1MIN
+	case SPIDER_TYPE_KLINE_5MIN:
+		return NOTICE_KLINE_5MIN
+	case SPIDER_TYPE_KLINE_15MIN:
+		return NOTICE_KLINE_15MIN
+	case SPIDER_TYPE_KLINE_30MIN:
+		return NOTICE_KLINE_30MIN
+	case SPIDER_TYPE_KLINE_HOUR:
+		return NOTICE_KLINE_HOUR
+	case SPIDER_TYPE_KLINE_DAY:
+		return NOTICE_KLINE_DAY
+	case SPIDER_TYPE_KLINE_WEEK:
+		return NOTICE_KLINE_WEEK
+	default:
+		return NOTICE_UNDEF
+	}
+}
 
 const (
 	CMD_EXIST             = -1

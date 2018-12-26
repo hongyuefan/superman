@@ -64,10 +64,10 @@ func (o *Order) GetOrder(symbol, orderId string) (okex.SpotOrderListResult, erro
 	return o.client.SpotGetOrder(param)
 }
 
-func (o *Order) DoOrder(oid, typ, side, symbol, margin, price, size, notional string) (okex.SpotOrderResult, error) {
+func (o *Order) DoOrder(clId, typ, side, symbol, margin, price, size, notional string) (okex.SpotOrderResult, error) {
 
 	param := okex.SpotOrderParams{
-		ClientId:     oid,
+		ClientId:     clId,
 		Type:         typ,
 		Side:         side,
 		InstrumentId: symbol,

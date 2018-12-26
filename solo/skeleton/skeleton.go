@@ -5,6 +5,7 @@ import (
 	"github.com/hongyuefan/superman/protocol"
 	"github.com/hongyuefan/superman/solo/base"
 	"github.com/hongyuefan/superman/solo/exchanges"
+	"github.com/okcoin-okex/open-api-v3-sdk/okex-go-sdk-api"
 )
 
 type Skeleton struct {
@@ -80,7 +81,26 @@ func (skt *Skeleton) GetTicker(symbol string) (base.TickerDetail, bool) {
 }
 
 func (skt *Skeleton) GetPendingOrderIds() []base.OrderQuery {
+
 	return skt.baseData.Orders.GetPendingOrderIds()
 }
 
-//func (skt *Skeleton) GetOrderByOrderId()
+func (skt *Skeleton) GetOrder(symbol, orderId string) (okex.SpotOrderListResult, error) {
+
+	return skt.baseData.Orders.GetOrder(symbol, orderId)
+}
+
+func (skt *Skeleton) DoOrder(clId, typ, side, symbol, margin, price, size, notional string) (okex.SpotOrderResult, error) {
+
+	return skt.baseData.Orders.DoOrder(clId, typ, side, symbol, margin, price, size, notional)
+}
+
+func (skt *Skeleton) CanselOrder(symbol, clId, orderId string) (okex.SpotOrderResult, error) {
+
+	return skt.baseData.Orders.CanselOrder(symbol, clId, orderId)
+}
+
+func (skt *Skeleton) ChanNotice() chan base.Notice {
+
+	return skt.baseData.ChanNotice
+}
