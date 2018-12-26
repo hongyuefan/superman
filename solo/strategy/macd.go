@@ -33,6 +33,15 @@ var mapPreEMA = map[protocol.KLineType]EMA{
 	protocol.SPIDER_TYPE_KLINE_DAY:   EMA{EMA12: 10, EMA26: 12},
 }
 
+var mapPreMACD = map[protocol.KLineType]MACD{
+	protocol.SPIDER_TYPE_KLINE_1MIN:  MACD{DEA: 10, DIF: 12, stamp: 10},
+	protocol.SPIDER_TYPE_KLINE_5MIN:  MACD{DEA: 10, DIF: 12, stamp: 10},
+	protocol.SPIDER_TYPE_KLINE_15MIN: MACD{DEA: 10, DIF: 12, stamp: 10},
+	protocol.SPIDER_TYPE_KLINE_30MIN: MACD{DEA: 10, DIF: 12, stamp: 10},
+	protocol.SPIDER_TYPE_KLINE_HOUR:  MACD{DEA: 10, DIF: 12, stamp: 10},
+	protocol.SPIDER_TYPE_KLINE_DAY:   MACD{DEA: 10, DIF: 12, stamp: 10},
+}
+
 type MACD struct {
 	DEA   float32
 	DIF   float32
@@ -127,6 +136,8 @@ func (s *StratMacd) Init() {
 			his := m_kl_his[kl]
 
 			his.preEMA = mapPreEMA[kl]
+
+			his.map_MACD[0] = &MACD{DEA: mapPreMACD[kl].DEA}
 		}
 	}
 }
@@ -162,7 +173,7 @@ func (s *StratMacd) Calculation(symbol string, kl protocol.KLineType) error {
 
 	//计算当前 dif、dea 指标
 	DIF := curEMA12 - curEMA26
-	DEA := his.map_MACD[1].DEA*8/10 + DIF*2/10
+	DEA := his.map_MACD[0].DEA*8/10 + DIF*2/10
 
 	curMacd := &MACD{DIF: DIF, DEA: DEA, stamp: ticker.TimeStamp}
 
@@ -191,6 +202,8 @@ func (s *StratMacd) OnClose() {
 }
 
 func (s *StratMacd) dispatchMsg(symbol string, notice protocol.NoticeType) {
+
+	fmt.Println("recv notice : %s,%v", symbol, notice)
 
 	switch notice {
 	case protocol.NOTICE_KLINE_1MIN:

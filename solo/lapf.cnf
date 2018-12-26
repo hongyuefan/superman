@@ -1,0 +1,13 @@
+{
+    "log": "../log",
+	"sqlcon":"",
+	"api_key":"413eb727-1177-4404-a47b-ef94f414fab8",
+	"secret_key":"18DDC1E0231CA70260AE4711E0A3FA48",
+	"pass_phrase":"15600199768",
+	"end_point":"https://www.okex.com/",
+	"ws_url":"wss://real.okex.com:10441/websocket",
+	"symbols":"eth_usdt",
+	"klines":"1min,5min,15min,30min,1hour,day,week",
+	"depth":"5",
+	"heart_beat":5
+}
