@@ -28,12 +28,12 @@ func (h *KLineHandler) Set(symbol string, typ protocol.KLineType, klDetail KLine
 
 		ktyp := NewKLineTypeData()
 
-		kd1min := NewKLineData(60)
-		kd5min := NewKLineData(300)
-		kd15min := NewKLineData(900)
-		kd30min := NewKLineData(1800)
-		kd1h := NewKLineData(3600)
-		kd1d := NewKLineData(86400)
+		kd1min := NewKLineData(60000)
+		kd5min := NewKLineData(300000)
+		kd15min := NewKLineData(900000)
+		kd30min := NewKLineData(1800000)
+		kd1h := NewKLineData(3600000)
+		kd1d := NewKLineData(86400000)
 
 		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_1MIN] = kd1min
 		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_5MIN] = kd5min

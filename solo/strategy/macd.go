@@ -16,12 +16,12 @@ const (
 )
 
 var mapIntervel = map[protocol.KLineType]int64{
-	protocol.SPIDER_TYPE_KLINE_1MIN:  60,
-	protocol.SPIDER_TYPE_KLINE_5MIN:  300,
-	protocol.SPIDER_TYPE_KLINE_15MIN: 900,
-	protocol.SPIDER_TYPE_KLINE_30MIN: 1800,
-	protocol.SPIDER_TYPE_KLINE_HOUR:  3600,
-	protocol.SPIDER_TYPE_KLINE_DAY:   86400,
+	protocol.SPIDER_TYPE_KLINE_1MIN:  60000,
+	protocol.SPIDER_TYPE_KLINE_5MIN:  300000,
+	protocol.SPIDER_TYPE_KLINE_15MIN: 900000,
+	protocol.SPIDER_TYPE_KLINE_30MIN: 1800000,
+	protocol.SPIDER_TYPE_KLINE_HOUR:  3600000,
+	protocol.SPIDER_TYPE_KLINE_DAY:   86400000,
 }
 
 var mapPreEMA = map[protocol.KLineType]EMA{
@@ -218,17 +218,24 @@ func (s *StratMacd) dispatchMsg(symbol string, notice protocol.NoticeType) {
 	switch notice {
 	case protocol.NOTICE_KLINE_1MIN:
 		s.Calculation(symbol, protocol.SPIDER_TYPE_KLINE_1MIN)
+		break
 	case protocol.NOTICE_KLINE_5MIN:
 		s.Calculation(symbol, protocol.SPIDER_TYPE_KLINE_5MIN)
+		break
 	case protocol.NOTICE_KLINE_15MIN:
 		s.Calculation(symbol, protocol.SPIDER_TYPE_KLINE_15MIN)
+		break
 	case protocol.NOTICE_KLINE_30MIN:
 		s.Calculation(symbol, protocol.SPIDER_TYPE_KLINE_30MIN)
+		break
 	case protocol.NOTICE_KLINE_HOUR:
 		s.Calculation(symbol, protocol.SPIDER_TYPE_KLINE_HOUR)
+		break
 	case protocol.NOTICE_KLINE_DAY:
 		s.Calculation(symbol, protocol.SPIDER_TYPE_KLINE_DAY)
+		break
 	case protocol.NOTICE_KLINE_WEEK:
 		s.Calculation(symbol, protocol.SPIDER_TYPE_KLINE_WEEK)
+		break
 	}
 }
