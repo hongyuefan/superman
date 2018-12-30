@@ -6,10 +6,13 @@ import (
 	"time"
 
 	"github.com/hongyuefan/superman/logs"
+	"github.com/hongyuefan/superman/solo/database"
 	"github.com/hongyuefan/superman/solo/strategy"
 )
 
 func RunServer() {
+
+	database.RegistDB()
 
 	strat := strategy.NewStratMacd()
 

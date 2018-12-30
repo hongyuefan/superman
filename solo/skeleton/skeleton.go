@@ -49,11 +49,8 @@ func (skt *Skeleton) Close() {
 	close(skt.exitChan)
 }
 
-func (skt *Skeleton) GetKline(symbol string, typ protocol.KLineType, index int) (ok bool, open, high, low, close, deal float64, time int64) {
-
-	kl, ok := skt.baseData.KLine.Get(symbol, typ, index)
-
-	return ok, kl.Open, kl.High, kl.Low, kl.Close, kl.DealAmount, kl.Time
+func (skt *Skeleton) GetKline(typ protocol.KLineType, count int64) ([]base.KLineDetail, bool) {
+	return skt.baseData.KLine.Get(typ, 0, count)
 }
 
 func (skt *Skeleton) GetCurrencyNames() []string {
@@ -75,9 +72,9 @@ func (skt *Skeleton) GetCurrencyByName(name string) (ok bool, available, balance
 	return true, result.Available, result.Balance, result.Hold
 }
 
-func (skt *Skeleton) GetTicker(symbol string) (base.TickerDetail, bool) {
+func (skt *Skeleton) GetTicker() base.TickerDetail {
 
-	return skt.baseData.TTicker.GetTicker(symbol)
+	return skt.baseData.TTicker.GetTicker()
 }
 
 func (skt *Skeleton) GetPendingOrderIds() []base.OrderQuery {

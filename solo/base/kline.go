@@ -2,162 +2,186 @@ package base
 
 import (
 	"strconv"
-	"sync"
 
 	"github.com/hongyuefan/superman/protocol"
+	"github.com/hongyuefan/superman/solo/database"
 )
 
-const MaxLen = 10
-
 type KLineHandler struct {
-	MKData map[string]*KLineTypeData
 }
 
 func NewKLineHandler() *KLineHandler {
-
-	kHandle := new(KLineHandler)
-
-	kHandle.MKData = make(map[string]*KLineTypeData)
-
-	return kHandle
+	return new(KLineHandler)
 }
 
-func (h *KLineHandler) Set(symbol string, typ protocol.KLineType, klDetail KLineDetail) {
+func (h *KLineHandler) Get(typ protocol.KLineType, offset, count int64) ([]KLineDetail, bool) {
 
-	if h.MKData[symbol] == nil {
+	query := make(map[string]string, 1)
 
-		ktyp := NewKLineTypeData()
+	kls := make([]KLineDetail, 0)
 
-		kd1min := NewKLineData(60000)
-		kd5min := NewKLineData(300000)
-		kd15min := NewKLineData(900000)
-		kd30min := NewKLineData(1800000)
-		kd1h := NewKLineData(3600000)
-		kd1d := NewKLineData(86400000)
+	switch typ {
+	case protocol.SPIDER_TYPE_KLINE_5MIN:
 
-		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_1MIN] = kd1min
-		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_5MIN] = kd5min
-		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_15MIN] = kd15min
-		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_30MIN] = kd30min
-		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_HOUR] = kd1h
-		ktyp.MKLineData[protocol.SPIDER_TYPE_KLINE_DAY] = kd1d
+		ml, err := database.GetKLine_5Mins(query, []string{}, []string{"id"}, []string{"desc"}, offset, count)
+		if err != nil {
+			return kls, false
+		}
+		for _, m := range ml {
 
-		h.MKData[symbol] = ktyp
+			open, _ := strconv.ParseFloat(m.(database.KLine_5Min).Open, 32)
+			high, _ := strconv.ParseFloat(m.(database.KLine_5Min).High, 32)
+			low, _ := strconv.ParseFloat(m.(database.KLine_5Min).Low, 32)
+			close, _ := strconv.ParseFloat(m.(database.KLine_5Min).Close, 32)
+			time, _ := strconv.ParseInt(m.(database.KLine_5Min).Time, 10, 64)
+			deal, _ := strconv.ParseFloat(m.(database.KLine_5Min).Deal, 32)
+
+			kl := KLineDetail{
+				Type:       protocol.SPIDER_TYPE_KLINE_5MIN,
+				Open:       open,
+				High:       high,
+				Low:        low,
+				Close:      close,
+				Time:       time,
+				DealAmount: deal,
+			}
+
+			kls = append(kls, kl)
+		}
+		return kls, true
+
+	case protocol.SPIDER_TYPE_KLINE_15MIN:
+		ml, err := database.GetKLine_15Mins(query, []string{}, []string{"id"}, []string{"desc"}, offset, count)
+		if err != nil {
+			return kls, false
+		}
+		for _, m := range ml {
+
+			open, _ := strconv.ParseFloat(m.(database.KLine_15Min).Open, 32)
+			high, _ := strconv.ParseFloat(m.(database.KLine_15Min).High, 32)
+			low, _ := strconv.ParseFloat(m.(database.KLine_15Min).Low, 32)
+			close, _ := strconv.ParseFloat(m.(database.KLine_15Min).Close, 32)
+			time, _ := strconv.ParseInt(m.(database.KLine_15Min).Time, 10, 64)
+			deal, _ := strconv.ParseFloat(m.(database.KLine_15Min).Deal, 32)
+
+			kl := KLineDetail{
+				Type:       protocol.SPIDER_TYPE_KLINE_15MIN,
+				Open:       open,
+				High:       high,
+				Low:        low,
+				Close:      close,
+				Time:       time,
+				DealAmount: deal,
+			}
+
+			kls = append(kls, kl)
+		}
+		return kls, true
+	case protocol.SPIDER_TYPE_KLINE_30MIN:
+		ml, err := database.GetKLine_30Mins(query, []string{}, []string{"id"}, []string{"desc"}, offset, count)
+		if err != nil {
+			return kls, false
+		}
+		for _, m := range ml {
+
+			open, _ := strconv.ParseFloat(m.(database.KLine_30Min).Open, 32)
+			high, _ := strconv.ParseFloat(m.(database.KLine_30Min).High, 32)
+			low, _ := strconv.ParseFloat(m.(database.KLine_30Min).Low, 32)
+			close, _ := strconv.ParseFloat(m.(database.KLine_30Min).Close, 32)
+			time, _ := strconv.ParseInt(m.(database.KLine_30Min).Time, 10, 64)
+			deal, _ := strconv.ParseFloat(m.(database.KLine_30Min).Deal, 32)
+
+			kl := KLineDetail{
+				Type:       protocol.SPIDER_TYPE_KLINE_30MIN,
+				Open:       open,
+				High:       high,
+				Low:        low,
+				Close:      close,
+				Time:       time,
+				DealAmount: deal,
+			}
+
+			kls = append(kls, kl)
+		}
+		return kls, true
+	case protocol.SPIDER_TYPE_KLINE_HOUR:
+		ml, err := database.GetKLine_Hours(query, []string{}, []string{"id"}, []string{"desc"}, offset, count)
+		if err != nil {
+			return kls, false
+		}
+		for _, m := range ml {
+
+			open, _ := strconv.ParseFloat(m.(database.KLine_Hour).Open, 32)
+			high, _ := strconv.ParseFloat(m.(database.KLine_Hour).High, 32)
+			low, _ := strconv.ParseFloat(m.(database.KLine_Hour).Low, 32)
+			close, _ := strconv.ParseFloat(m.(database.KLine_Hour).Close, 32)
+			time, _ := strconv.ParseInt(m.(database.KLine_Hour).Time, 10, 64)
+			deal, _ := strconv.ParseFloat(m.(database.KLine_Hour).Deal, 32)
+
+			kl := KLineDetail{
+				Type:       protocol.SPIDER_TYPE_KLINE_HOUR,
+				Open:       open,
+				High:       high,
+				Low:        low,
+				Close:      close,
+				Time:       time,
+				DealAmount: deal,
+			}
+
+			kls = append(kls, kl)
+		}
+		return kls, true
+	case protocol.SPIDER_TYPE_KLINE_DAY:
+		ml, err := database.GetKLine_Days(query, []string{}, []string{"id"}, []string{"desc"}, offset, count)
+		if err != nil {
+			return kls, false
+		}
+		for _, m := range ml {
+
+			open, _ := strconv.ParseFloat(m.(database.KLine_Day).Open, 32)
+			high, _ := strconv.ParseFloat(m.(database.KLine_Day).High, 32)
+			low, _ := strconv.ParseFloat(m.(database.KLine_Day).Low, 32)
+			close, _ := strconv.ParseFloat(m.(database.KLine_Day).Close, 32)
+			time, _ := strconv.ParseInt(m.(database.KLine_Day).Time, 10, 64)
+			deal, _ := strconv.ParseFloat(m.(database.KLine_Day).Deal, 32)
+
+			kl := KLineDetail{
+				Type:       protocol.SPIDER_TYPE_KLINE_DAY,
+				Open:       open,
+				High:       high,
+				Low:        low,
+				Close:      close,
+				Time:       time,
+				DealAmount: deal,
+			}
+
+			kls = append(kls, kl)
+		}
+		return kls, true
 	}
-	h.MKData[symbol].MKLineData[typ].CleanKLineData(klDetail)
-}
-
-func (h *KLineHandler) Get(symbol string, typ protocol.KLineType, index int) (KLineDetail, bool) {
-
-	ktData, ok := h.MKData[symbol]
-	if !ok {
-		return KLineDetail{}, ok
-	}
-	klData, ok := ktData.MKLineData[typ]
-	if !ok {
-		return KLineDetail{}, ok
-	}
-	return klData.GetKLineData(index)
+	return kls, false
 }
 
 func (h *KLineHandler) Handler(typ protocol.KLineType, symbol, time, open, high, low, close, deal string) {
 
-	nTime, _ := strconv.ParseInt(time, 10, 64)
-	nOpen, _ := strconv.ParseFloat(open, 10)
-	nHigh, _ := strconv.ParseFloat(high, 10)
-	nLow, _ := strconv.ParseFloat(low, 10)
-	nClose, _ := strconv.ParseFloat(close, 10)
-	nDeal, _ := strconv.ParseFloat(deal, 10)
-
-	klDetail := KLineDetail{
-		Type:       typ,
-		Time:       nTime,
-		Open:       nOpen,
-		High:       nHigh,
-		Low:        nLow,
-		Close:      nClose,
-		DealAmount: nDeal,
+	switch typ {
+	case protocol.SPIDER_TYPE_KLINE_5MIN:
+		database.SetKLine_5MinByTime(&database.KLine_5Min{Open: open, High: high, Low: low, Close: close, Deal: deal, Time: time})
+		break
+	case protocol.SPIDER_TYPE_KLINE_15MIN:
+		database.SetKLine_15MinByTime(&database.KLine_15Min{Open: open, High: high, Low: low, Close: close, Deal: deal, Time: time})
+		break
+	case protocol.SPIDER_TYPE_KLINE_30MIN:
+		database.SetKLine_30MinByTime(&database.KLine_30Min{Open: open, High: high, Low: low, Close: close, Deal: deal, Time: time})
+		break
+	case protocol.SPIDER_TYPE_KLINE_HOUR:
+		database.SetKLine_HourByTime(&database.KLine_Hour{Open: open, High: high, Low: low, Close: close, Deal: deal, Time: time})
+		break
+	case protocol.SPIDER_TYPE_KLINE_DAY:
+		database.SetKLine_DayByTime(&database.KLine_Day{Open: open, High: high, Low: low, Close: close, Deal: deal, Time: time})
+		break
 	}
 
-	h.Set(symbol, typ, klDetail)
-}
-
-type KLineTypeData struct {
-	MKLineData map[protocol.KLineType]*KLineData
-}
-
-func NewKLineTypeData() *KLineTypeData {
-	return &KLineTypeData{
-		MKLineData: make(map[protocol.KLineType]*KLineData),
-	}
-}
-
-type KLineData struct {
-	MKDetail  map[int]KLineDetail
-	lock      sync.RWMutex
-	KIntervel int64
-}
-
-func NewKLineData(intervel int64) *KLineData {
-	return &KLineData{
-		MKDetail:  make(map[int]KLineDetail),
-		KIntervel: intervel,
-	}
-}
-
-func (k *KLineData) GetKLineData(index int) (KLineDetail, bool) {
-	k.lock.RLock()
-	defer k.lock.RUnlock()
-	data, ok := k.MKDetail[index]
-	return data, ok
-}
-
-func (k *KLineData) CleanKLineData(kdetail KLineDetail) {
-	k.lock.Lock()
-	defer k.lock.Unlock()
-
-	if len(k.MKDetail) == 0 {
-
-		k.MKDetail[0] = kdetail
-
-		return
-	}
-
-	curDetail, ok := k.MKDetail[0]
-	if !ok {
-		panic("kline clean error")
-	}
-
-	if (kdetail.Time - curDetail.Time) > k.KIntervel {
-		k.ReSort(kdetail)
-	} else {
-		k.UpdateKLineData(0, kdetail)
-	}
-
-	return
-}
-
-func (k *KLineData) ReSort(kdetail KLineDetail) {
-
-	nIndex := len(k.MKDetail)
-
-	if nIndex < MaxLen {
-		for i := nIndex - 1; i >= 0; i-- {
-			k.MKDetail[i+1] = k.MKDetail[i]
-		}
-
-	} else {
-		for i := nIndex - 1; i >= 1; i-- {
-			k.MKDetail[i] = k.MKDetail[i-1]
-		}
-	}
-	k.MKDetail[0] = kdetail
-
-	return
-}
-
-func (k *KLineData) UpdateKLineData(index int, kdetail KLineDetail) {
-	k.MKDetail[index] = kdetail
 }
 
 type KLineDetail struct {

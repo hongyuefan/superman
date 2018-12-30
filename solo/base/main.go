@@ -102,20 +102,18 @@ func (b *BaseData) parseDataDetails(channel string, js *simplejson.Json) error {
 		if err != nil {
 			return err
 		}
-		timestamp, _ := (mticker["timestamp"].(json.Number)).Int64()
+		timestamp, _ := mticker["timestamp"].(json.Number).Int64()
+		high, _ := mticker["high"].(json.Number).Float64()
+		vol, _ := mticker["vol"].(json.Number).Float64()
+		last, _ := mticker["last"].(json.Number).Float64()
+		low, _ := mticker["low"].(json.Number).Float64()
+		buy, _ := mticker["buy"].(json.Number).Float64()
+		change, _ := mticker["change"].(json.Number).Float64()
+		sell, _ := mticker["sell"].(json.Number).Float64()
+		dayLow, _ := mticker["dayLow"].(json.Number).Float64()
+		dayHigh, _ := mticker["dayHigh"].(json.Number).Float64()
 
-		b.TTicker.SetTicker(symbol, TickerDetail{
-			High:      mticker["high"].(string),
-			Vol:       mticker["vol"].(string),
-			Last:      mticker["last"].(string),
-			Low:       mticker["low"].(string),
-			Buy:       mticker["buy"].(string),
-			Change:    mticker["change"].(string),
-			Sell:      mticker["sell"].(string),
-			DayHigh:   mticker["dayHigh"].(string),
-			DayLow:    mticker["dayLow"].(string),
-			TimeStamp: timestamp,
-		})
+		b.TTicker.SetTicker(high, vol, last, low, buy, change, sell, dayLow, dayHigh, timestamp)
 
 		b.PutNotice(symbol, protocol.NOTICE_TICKER)
 

@@ -5,27 +5,35 @@ import (
 )
 
 type Ticker struct {
-	mTickerDetail map[string]TickerDetail
+	mTickerDetail TickerDetail
 	lock          sync.RWMutex
 }
 
 func NewTicker() *Ticker {
-	return &Ticker{
-		mTickerDetail: make(map[string]TickerDetail),
-	}
+	return &Ticker{}
 }
 
-func (t *Ticker) GetTicker(symbol string) (TickerDetail, bool) {
+func (t *Ticker) GetTicker() TickerDetail {
 	t.lock.RLock()
 	defer t.lock.RUnlock()
-	detail, ok := t.mTickerDetail[symbol]
-	return detail, ok
+	return t.mTickerDetail
 }
 
-func (t *Ticker) SetTicker(symbol string, tk TickerDetail) {
+func (t *Ticker) SetTicker(high, vol, last, low, buy, change, sell, daylow, dayhigh float64, time int64) {
 	t.lock.Lock()
 	defer t.lock.Unlock()
-	t.mTickerDetail[symbol] = tk
+	t.mTickerDetail = TickerDetail{
+		High:      high,
+		Vol:       vol,
+		Last:      last,
+		Low:       low,
+		Buy:       buy,
+		Change:    change,
+		Sell:      sell,
+		DayHigh:   dayhigh,
+		DayLow:    daylow,
+		TimeStamp: time,
+	}
 }
 
 /*
@@ -39,14 +47,14 @@ vol(double): 成交量(最近的24小时)  ///base_volume_24h
 timestamp系统时间戳
 */
 type TickerDetail struct {
-	High      string `json:"high"`
-	Vol       string `json:"vol"`
-	Last      string `json:"last"`
-	Low       string `json:"low"`
-	Buy       string `json:"buy"`
-	Change    string `json:"change"`
-	Sell      string `json:"sell"`
-	DayLow    string `json:"dayLow"`
-	DayHigh   string `json:"dayHigh"`
-	TimeStamp int64  `json:"timestamp"`
+	High      float64 `json:"high"`
+	Vol       float64 `json:"vol"`
+	Last      float64 `json:"last"`
+	Low       float64 `json:"low"`
+	Buy       float64 `json:"buy"`
+	Change    float64 `json:"change"`
+	Sell      float64 `json:"sell"`
+	DayLow    float64 `json:"dayLow"`
+	DayHigh   float64 `json:"dayHigh"`
+	TimeStamp int64   `json:"timestamp"`
 }
