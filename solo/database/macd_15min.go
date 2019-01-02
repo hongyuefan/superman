@@ -53,8 +53,8 @@ func AddMACD_15Min(m *MACD_15Min) (id int64, err error) {
 	return
 }
 
-func GetMACD_15Min_Last(v []MACD_15Min, limit, offset int64) (int64, error) {
-	return orm.NewOrm().QueryTable(new(MACD_15Min)).OrderBy("-id").Limit(limit, offset).All(&v)
+func GetMACD_15Min_Last(v *[]MACD_15Min, limit, offset int64) (int64, error) {
+	return orm.NewOrm().QueryTable(new(MACD_15Min)).OrderBy("-id").Limit(limit, offset).All(v)
 }
 
 func GetMACD_15Mins(query map[string]string, fields []string, sortby []string, order []string, offset int64, limit int64) (ml []interface{}, err error) {

@@ -53,8 +53,8 @@ func AddMACD_Day(m *MACD_Day) (id int64, err error) {
 	return
 }
 
-func GetMACD_Day_Last(v []MACD_Day, limit, offset int64) (int64, error) {
-	return orm.NewOrm().QueryTable(new(MACD_Day)).OrderBy("-id").Limit(limit, offset).All(&v)
+func GetMACD_Day_Last(v *[]MACD_Day, limit, offset int64) (int64, error) {
+	return orm.NewOrm().QueryTable(new(MACD_Day)).OrderBy("-id").Limit(limit, offset).All(v)
 }
 
 func GetMACD_Days(query map[string]string, fields []string, sortby []string, order []string, offset int64, limit int64) (ml []interface{}, err error) {

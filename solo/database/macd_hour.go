@@ -53,8 +53,8 @@ func GetMACD_Hour(m *MACD_Hour, col ...string) (err error) {
 	return o.Read(m, col...)
 }
 
-func GetMACD_Hour_Last(v []MACD_Hour, limit, offset int64) (int64, error) {
-	return orm.NewOrm().QueryTable(new(MACD_Hour)).OrderBy("-id").Limit(limit, offset).All(&v)
+func GetMACD_Hour_Last(v *[]MACD_Hour, limit, offset int64) (int64, error) {
+	return orm.NewOrm().QueryTable(new(MACD_Hour)).OrderBy("-id").Limit(limit, offset).All(v)
 }
 
 func GetMACD_Hours(query map[string]string, fields []string, sortby []string, order []string, offset int64, limit int64) (ml []interface{}, err error) {

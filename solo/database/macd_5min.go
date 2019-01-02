@@ -53,8 +53,8 @@ func AddMACD_5Min(m *MACD_5Min) (id int64, err error) {
 	return
 }
 
-func GetMACD_5Min_Last(v []MACD_5Min, limit, offset int64) (int64, error) {
-	return orm.NewOrm().QueryTable(new(MACD_5Min)).OrderBy("-id").Limit(limit, offset).All(&v)
+func GetMACD_5Min_Last(v *[]MACD_5Min, limit, offset int64) (int64, error) {
+	return orm.NewOrm().QueryTable(new(MACD_5Min)).OrderBy("-id").Limit(limit, offset).All(v)
 }
 
 func GetMACD_5Mins(query map[string]string, fields []string, sortby []string, order []string, offset int64, limit int64) (ml []interface{}, err error) {
