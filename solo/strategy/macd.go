@@ -280,7 +280,7 @@ func (s *StratMacd) judgeMacd(kl protocol.KLineType) {
 
 	if err != nil {
 
-		if err = s.SetMacd(kl, kls[0].Close, kls[0].Close, kls[0].Close, 0, 0, kls[0].Time); err != nil {
+		if err = s.SetMacd(kl, kls[0].Close, kls[0].Close, 0, 0, 0, kls[0].Time); err != nil {
 			logs.Error("kline %v setMacd error:%v", kl, err)
 			return
 		}
