@@ -120,8 +120,8 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 
 		macd := []database.MACD_5Min{}
 
-		if num, err := database.GetMACD_5Min_Last(macd, 1, offset); err != nil || num == 0 {
-			return 0, 0, 0, 0, 0, err
+		if _, err := database.GetMACD_5Min_Last(macd, 1, offset); err != nil || len(macd) == 0 {
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error :%s", err.Error())
 		}
 		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
 
@@ -129,8 +129,8 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 
 		macd := []database.MACD_15Min{}
 
-		if num, err := database.GetMACD_15Min_Last(macd, 1, offset); err != nil || num == 0 {
-			return 0, 0, 0, 0, 0, err
+		if _, err := database.GetMACD_15Min_Last(macd, 1, offset); err != nil || len(macd) == 0 {
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error :%s", err.Error())
 		}
 		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
 
@@ -138,8 +138,8 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 
 		macd := []database.MACD_Hour{}
 
-		if num, err := database.GetMACD_Hour_Last(macd, 1, offset); err != nil || num == 0 {
-			return 0, 0, 0, 0, 0, err
+		if _, err := database.GetMACD_Hour_Last(macd, 1, offset); err != nil || len(macd) == 0 {
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error :%s", err.Error())
 		}
 		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
 
@@ -147,8 +147,8 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 
 		macd := []database.MACD_Day{}
 
-		if num, err := database.GetMACD_Day_Last(macd, 1, offset); err != nil || num == 0 {
-			return 0, 0, 0, 0, 0, err
+		if _, err := database.GetMACD_Day_Last(macd, 1, offset); err != nil || len(macd) == 0 {
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error :%s", err.Error())
 		}
 		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
 	}
@@ -242,6 +242,7 @@ func (s *StratMacd) Calculation(kl protocol.KLineType) error {
 	}
 
 	fmt.Println("Calculation:", kl, "EMA12:", curEMA12, "EMA26:", curEMA26, "DIF:", DIF, "DEA:", DEA, "TIME:", kls[0].Time)
+
 	return nil
 }
 
@@ -297,24 +298,28 @@ func (s *StratMacd) dispatchMsg(symbol string, notice protocol.NoticeType) {
 	case protocol.NOTICE_KLINE_5MIN:
 		if !s.mapFlag[protocol.SPIDER_TYPE_KLINE_5MIN] {
 			s.judgeMacd(protocol.SPIDER_TYPE_KLINE_5MIN)
+			return
 		}
 		s.Calculation(protocol.SPIDER_TYPE_KLINE_5MIN)
 		break
 	case protocol.NOTICE_KLINE_15MIN:
 		if !s.mapFlag[protocol.SPIDER_TYPE_KLINE_15MIN] {
 			s.judgeMacd(protocol.SPIDER_TYPE_KLINE_15MIN)
+			return
 		}
 		s.Calculation(protocol.SPIDER_TYPE_KLINE_15MIN)
 		break
 	case protocol.NOTICE_KLINE_HOUR:
 		if !s.mapFlag[protocol.SPIDER_TYPE_KLINE_HOUR] {
 			s.judgeMacd(protocol.SPIDER_TYPE_KLINE_HOUR)
+			return
 		}
 		s.Calculation(protocol.SPIDER_TYPE_KLINE_HOUR)
 		break
 	case protocol.NOTICE_KLINE_DAY:
 		if !s.mapFlag[protocol.SPIDER_TYPE_KLINE_DAY] {
 			s.judgeMacd(protocol.SPIDER_TYPE_KLINE_DAY)
+			return
 		}
 		s.Calculation(protocol.SPIDER_TYPE_KLINE_DAY)
 		break
