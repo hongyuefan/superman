@@ -221,10 +221,11 @@ func (s *StratMacd) Calculation(kl protocol.KLineType) error {
 		if err != nil {
 			return err
 		}
-	}
-	prema12, prema26, predea, _, _, err = s.GetLastMacd(kl, 1)
-	if err != nil {
-		return err
+	} else {
+		prema12, prema26, predea, _, _, err = s.GetLastMacd(kl, 1)
+		if err != nil {
+			return err
+		}
 	}
 
 	//计算ema指数
