@@ -121,7 +121,7 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 		macd := []database.MACD_5Min{}
 
 		if _, err := database.GetMACD_5Min_Last(macd, 1, offset); err != nil || len(macd) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error :%s", err.Error())
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
 		}
 		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
 
@@ -130,7 +130,7 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 		macd := []database.MACD_15Min{}
 
 		if _, err := database.GetMACD_15Min_Last(macd, 1, offset); err != nil || len(macd) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error :%s", err.Error())
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
 		}
 		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
 
@@ -139,7 +139,7 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 		macd := []database.MACD_Hour{}
 
 		if _, err := database.GetMACD_Hour_Last(macd, 1, offset); err != nil || len(macd) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error :%s", err.Error())
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
 		}
 		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
 
@@ -148,7 +148,7 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 		macd := []database.MACD_Day{}
 
 		if _, err := database.GetMACD_Day_Last(macd, 1, offset); err != nil || len(macd) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error :%s", err.Error())
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error")
 		}
 		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
 	}
