@@ -3,6 +3,7 @@ package base
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 
 	simplejson "github.com/bitly/go-simplejson"
@@ -103,15 +104,15 @@ func (b *BaseData) parseDataDetails(channel string, js *simplejson.Json) error {
 			return err
 		}
 		timestamp, _ := mticker["timestamp"].(json.Number).Int64()
-		high, _ := mticker["high"].(json.Number).Float64()
-		vol, _ := mticker["vol"].(json.Number).Float64()
-		last, _ := mticker["last"].(json.Number).Float64()
-		low, _ := mticker["low"].(json.Number).Float64()
-		buy, _ := mticker["buy"].(json.Number).Float64()
-		change, _ := mticker["change"].(json.Number).Float64()
-		sell, _ := mticker["sell"].(json.Number).Float64()
-		dayLow, _ := mticker["dayLow"].(json.Number).Float64()
-		dayHigh, _ := mticker["dayHigh"].(json.Number).Float64()
+		high, _ := strconv.ParseFloat(mticker["high"].(string), 64)
+		vol, _ := strconv.ParseFloat(mticker["vol"].(string), 64)
+		last, _ := strconv.ParseFloat(mticker["last"].(string), 64)
+		low, _ := strconv.ParseFloat(mticker["low"].(string), 64)
+		buy, _ := strconv.ParseFloat(mticker["buy"].(string), 64)
+		change, _ := strconv.ParseFloat(mticker["change"].(string), 64)
+		sell, _ := strconv.ParseFloat(mticker["sell"].(string), 64)
+		dayLow, _ := strconv.ParseFloat(mticker["dayLow"].(string), 64)
+		dayHigh, _ := strconv.ParseFloat(mticker["dayHigh"].(string), 64)
 
 		b.TTicker.SetTicker(high, vol, last, low, buy, change, sell, dayLow, dayHigh, timestamp)
 
