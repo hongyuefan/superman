@@ -39,6 +39,7 @@ func NewOkExChange(msgHandler MsgHandler) *OkExChange {
 func (t *OkExChange) Init() error {
 
 	t.wsUrl = config.T.WsUrl
+
 	t.okexSymbols = utils.ParseStringToArry(config.T.Symbol, ",")
 	t.okexKlineTime = utils.ParseStringToArry(config.T.Kline, ",")
 	t.okexDepth = utils.ParseStringToArry(config.T.Depth, ",")

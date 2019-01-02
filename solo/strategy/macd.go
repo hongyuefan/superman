@@ -5,6 +5,7 @@ import (
 
 	"sync"
 
+	"github.com/hongyuefan/superman/logs"
 	"github.com/hongyuefan/superman/protocol"
 	"github.com/hongyuefan/superman/solo/database"
 	"github.com/hongyuefan/superman/solo/skeleton"
@@ -24,12 +25,19 @@ type StratMacd struct {
 	skl       *skeleton.Skeleton
 	lock      sync.RWMutex
 	chanClose chan bool
+	mapFlag   map[protocol.KLineType]bool
 }
 
 func NewStratMacd() *StratMacd {
 	return &StratMacd{
 		skl:       skeleton.NewSkeleton(),
 		chanClose: make(chan bool, 0),
+		mapFlag: map[protocol.KLineType]bool{
+			protocol.SPIDER_TYPE_KLINE_5MIN:  false,
+			protocol.SPIDER_TYPE_KLINE_15MIN: false,
+			protocol.SPIDER_TYPE_KLINE_HOUR:  false,
+			protocol.SPIDER_TYPE_KLINE_DAY:   false,
+		},
 	}
 }
 
@@ -41,7 +49,23 @@ func (s *StratMacd) Init() {
 }
 
 func (s *StratMacd) SetMacd(kl protocol.KLineType, ema12, ema26, dea, dif, macd float64, time int64) error {
+
 	switch kl {
+
+	case protocol.SPIDER_TYPE_KLINE_5MIN:
+
+		macd := &database.MACD_5Min{
+			EMA12: ema12,
+			EMA26: ema26,
+			DEA:   dea,
+			DIF:   dif,
+			MACD:  macd,
+			Time:  time,
+		}
+		if num, err := database.SetMACD_5Min(macd); err != nil || num == 0 {
+			return fmt.Errorf("set macd error %v", kl)
+		}
+		return nil
 
 	case protocol.SPIDER_TYPE_KLINE_15MIN:
 
@@ -92,6 +116,15 @@ func (s *StratMacd) SetMacd(kl protocol.KLineType, ema12, ema26, dea, dif, macd 
 func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA26, DEA, DIF float64, Time int64, err error) {
 	switch kl {
 
+	case protocol.SPIDER_TYPE_KLINE_5MIN:
+
+		macd := []database.MACD_5Min{}
+
+		if num, err := database.GetMACD_5Min_Last(macd, 1, offset); err != nil || num == 0 {
+			return 0, 0, 0, 0, 0, err
+		}
+		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
+
 	case protocol.SPIDER_TYPE_KLINE_15MIN:
 
 		macd := []database.MACD_15Min{}
@@ -126,6 +159,15 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 func (s *StratMacd) GetMacd(kl protocol.KLineType, time int64) (EMA12, EMA26, DEA, DIF float64, Time int64, err error) {
 
 	switch kl {
+
+	case protocol.SPIDER_TYPE_KLINE_5MIN:
+
+		macd := &database.MACD_5Min{Time: time}
+
+		if err := database.GetMACD_5Min(macd, "time"); err != nil {
+			return 0, 0, 0, 0, 0, err
+		}
+		return macd.EMA12, macd.EMA26, macd.DEA, macd.DIF, macd.Time, nil
 
 	case protocol.SPIDER_TYPE_KLINE_15MIN:
 
@@ -198,7 +240,7 @@ func (s *StratMacd) Calculation(kl protocol.KLineType) error {
 		return err
 	}
 
-	fmt.Println("Calculation:", "EMA12:", curEMA12, "EMA26:", curEMA26, "DIF:", DIF, "DEA:", DEA, "TIME:", kls[0].Time)
+	fmt.Println("Calculation:", kl, "EMA12:", curEMA12, "EMA26:", curEMA26, "DIF:", DIF, "DEA:", DEA, "TIME:", kls[0].Time)
 	return nil
 }
 
@@ -221,17 +263,59 @@ func (s *StratMacd) OnClose() {
 	close(s.chanClose)
 }
 
+func (s *StratMacd) judgeMacd(kl protocol.KLineType) {
+
+	var err error
+
+	kls, ok := s.skl.GetKline(kl, 1)
+
+	if !ok {
+		logs.Error("kline %v no data", kl)
+		return
+	}
+
+	_, _, _, _, _, err = s.GetLastMacd(kl, 0)
+
+	if err != nil {
+
+		if err = s.SetMacd(kl, kls[0].Close, kls[0].Close, kls[0].Close, 0, 0, kls[0].Time); err != nil {
+			logs.Error("kline %v setMacd error:%v", kl, err)
+			return
+		}
+	}
+
+	s.mapFlag[kl] = true
+
+	return
+
+}
+
 func (s *StratMacd) dispatchMsg(symbol string, notice protocol.NoticeType) {
 
 	switch notice {
+	case protocol.NOTICE_KLINE_5MIN:
+		if !s.mapFlag[protocol.SPIDER_TYPE_KLINE_5MIN] {
+			s.judgeMacd(protocol.SPIDER_TYPE_KLINE_5MIN)
+		}
+		s.Calculation(protocol.SPIDER_TYPE_KLINE_5MIN)
+		break
 	case protocol.NOTICE_KLINE_15MIN:
-		//s.Calculation(protocol.SPIDER_TYPE_KLINE_15MIN)
+		if !s.mapFlag[protocol.SPIDER_TYPE_KLINE_15MIN] {
+			s.judgeMacd(protocol.SPIDER_TYPE_KLINE_15MIN)
+		}
+		s.Calculation(protocol.SPIDER_TYPE_KLINE_15MIN)
 		break
 	case protocol.NOTICE_KLINE_HOUR:
-		//s.Calculation(protocol.SPIDER_TYPE_KLINE_HOUR)
+		if !s.mapFlag[protocol.SPIDER_TYPE_KLINE_HOUR] {
+			s.judgeMacd(protocol.SPIDER_TYPE_KLINE_HOUR)
+		}
+		s.Calculation(protocol.SPIDER_TYPE_KLINE_HOUR)
 		break
 	case protocol.NOTICE_KLINE_DAY:
-		//s.Calculation(protocol.SPIDER_TYPE_KLINE_DAY)
+		if !s.mapFlag[protocol.SPIDER_TYPE_KLINE_DAY] {
+			s.judgeMacd(protocol.SPIDER_TYPE_KLINE_DAY)
+		}
+		s.Calculation(protocol.SPIDER_TYPE_KLINE_DAY)
 		break
 	}
 }
