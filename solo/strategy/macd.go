@@ -113,7 +113,7 @@ func (s *StratMacd) SetMacd(kl protocol.KLineType, ema12, ema26, dea, dif, macd 
 
 	return fmt.Errorf("kline type not surpost %v", kl)
 }
-func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA26, DEA, DIF float64, Time int64, err error) {
+func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA26, DEA, DIF, MACD float64, Time int64, err error) {
 	switch kl {
 
 	case protocol.SPIDER_TYPE_KLINE_5MIN:
@@ -121,39 +121,39 @@ func (s *StratMacd) GetLastMacd(kl protocol.KLineType, offset int64) (EMA12, EMA
 		macd := []database.MACD_5Min{}
 
 		if _, err := database.GetMACD_5Min_Last(&macd, 1, offset); err != nil || len(macd) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
+			return 0, 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
 		}
-		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
+		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].MACD, macd[0].Time, nil
 
 	case protocol.SPIDER_TYPE_KLINE_15MIN:
 
 		macd := []database.MACD_15Min{}
 
 		if _, err := database.GetMACD_15Min_Last(&macd, 1, offset); err != nil || len(macd) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
+			return 0, 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
 		}
-		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
+		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].MACD, macd[0].Time, nil
 
 	case protocol.SPIDER_TYPE_KLINE_HOUR:
 
 		macd := []database.MACD_Hour{}
 
 		if _, err := database.GetMACD_Hour_Last(&macd, 1, offset); err != nil || len(macd) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
+			return 0, 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error ")
 		}
-		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
+		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].MACD, macd[0].Time, nil
 
 	case protocol.SPIDER_TYPE_KLINE_DAY:
 
 		macd := []database.MACD_Day{}
 
 		if _, err := database.GetMACD_Day_Last(&macd, 1, offset); err != nil || len(macd) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error")
+			return 0, 0, 0, 0, 0, 0, fmt.Errorf("GetLastMacd Error")
 		}
-		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].Time, nil
+		return macd[0].EMA12, macd[0].EMA26, macd[0].DEA, macd[0].DIF, macd[0].MACD, macd[0].Time, nil
 	}
 
-	return 0, 0, 0, 0, 0, fmt.Errorf("kline type not surpost %v", kl)
+	return 0, 0, 0, 0, 0, 0, fmt.Errorf("kline type not surpost %v", kl)
 }
 
 func (s *StratMacd) GetMacd(kl protocol.KLineType, time int64) (EMA12, EMA26, DEA, DIF float64, Time int64, err error) {
@@ -201,12 +201,28 @@ func (s *StratMacd) GetMacd(kl protocol.KLineType, time int64) (EMA12, EMA26, DE
 
 }
 
+func (s *StratMacd) doOrder(kl protocol.KLineType, lastMacd float64) {
+
+	_, _, _, _, macd, _, err := s.GetLastMacd(kl, 1)
+	if err != nil {
+		return
+	}
+	if macd <= 0 && lastMacd > 0 {
+		fmt.Println("======Buy=====:", s.skl.GetTicker().Sell, lastMacd-macd)
+	}
+	if macd >= 0 && lastMacd < 0 {
+		fmt.Println("======Sell=====:", s.skl.GetTicker().Buy, lastMacd-macd)
+	}
+	return
+}
+
 func (s *StratMacd) Calculation(kl protocol.KLineType) error {
 
 	var (
 		prema12 float64
 		prema26 float64
 		predea  float64
+		premacd float64
 		err     error
 	)
 	//获取kline数据
@@ -217,12 +233,13 @@ func (s *StratMacd) Calculation(kl protocol.KLineType) error {
 
 	_, _, _, _, _, err = s.GetMacd(kl, kls[0].Time)
 	if err != nil {
-		prema12, prema26, predea, _, _, err = s.GetLastMacd(kl, 0)
+		prema12, prema26, predea, _, premacd, _, err = s.GetLastMacd(kl, 0)
 		if err != nil {
 			return err
 		}
+		s.doOrder(kl, premacd)
 	} else {
-		prema12, prema26, predea, _, _, err = s.GetLastMacd(kl, 1)
+		prema12, prema26, predea, _, _, _, err = s.GetLastMacd(kl, 1)
 		if err != nil {
 			return err
 		}
@@ -241,7 +258,7 @@ func (s *StratMacd) Calculation(kl protocol.KLineType) error {
 		return err
 	}
 
-	fmt.Println("Calculation:", kl, "EMA12:", curEMA12, "EMA26:", curEMA26, "DIF:", DIF, "DEA:", DEA, "TIME:", kls[0].Time)
+	fmt.Println("Calculation:", kl, "EMA12:", curEMA12, "EMA26:", curEMA26, "DIF:", DIF, "DEA:", DEA, "MACD:", MACD, "TIME:", kls[0].Time)
 
 	return nil
 }
@@ -276,7 +293,7 @@ func (s *StratMacd) judgeMacd(kl protocol.KLineType) {
 		return
 	}
 
-	_, _, _, _, _, err = s.GetLastMacd(kl, 0)
+	_, _, _, _, _, _, err = s.GetLastMacd(kl, 0)
 
 	if err != nil {
 
