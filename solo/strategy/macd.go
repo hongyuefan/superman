@@ -203,6 +203,9 @@ func (s *StratMacd) GetMacd(kl protocol.KLineType, time int64) (EMA12, EMA26, DE
 
 func (s *StratMacd) doOrder(kl protocol.KLineType, lastMacd float64) {
 
+	if kl != protocol.SPIDER_TYPE_KLINE_15MIN {
+		return
+	}
 	_, _, _, _, macd, _, err := s.GetLastMacd(kl, 1)
 	if err != nil {
 		return
