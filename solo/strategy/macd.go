@@ -201,9 +201,9 @@ func (s *StratMacd) GetMacd(kl protocol.KLineType, time int64) (EMA12, EMA26, DE
 
 }
 
-func (s *StratMacd) doOrder(kl protocol.KLineType, lastMacd float64) {
+func (s *StratMacd) doOrder(kl protocol.KLineType, lastMacd float64, time int64) {
 
-	if kl != protocol.SPIDER_TYPE_KLINE_15MIN {
+	if kl != protocol.SPIDER_TYPE_KLINE_HOUR {
 		return
 	}
 	_, _, _, _, macd, _, err := s.GetLastMacd(kl, 1)
@@ -211,10 +211,10 @@ func (s *StratMacd) doOrder(kl protocol.KLineType, lastMacd float64) {
 		return
 	}
 	if macd <= 0 && lastMacd > 0 {
-		fmt.Println("======Buy=====:", s.skl.GetTicker().Sell, lastMacd-macd)
+		fmt.Println("======Buy=====:", s.skl.GetTicker().Last, lastMacd-macd, time)
 	}
 	if macd >= 0 && lastMacd < 0 {
-		fmt.Println("======Sell=====:", s.skl.GetTicker().Buy, lastMacd-macd)
+		fmt.Println("======Sell=====:", s.skl.GetTicker().Last, lastMacd-macd, time)
 	}
 	return
 }
@@ -226,6 +226,7 @@ func (s *StratMacd) Calculation(kl protocol.KLineType) error {
 		prema26 float64
 		predea  float64
 		premacd float64
+		pretime int64
 		err     error
 	)
 	//获取kline数据
@@ -236,11 +237,11 @@ func (s *StratMacd) Calculation(kl protocol.KLineType) error {
 
 	_, _, _, _, _, err = s.GetMacd(kl, kls[0].Time)
 	if err != nil {
-		prema12, prema26, predea, _, premacd, _, err = s.GetLastMacd(kl, 0)
+		prema12, prema26, predea, _, premacd, pretime, err = s.GetLastMacd(kl, 0)
 		if err != nil {
 			return err
 		}
-		s.doOrder(kl, premacd)
+		s.doOrder(kl, premacd, pretime)
 	} else {
 		prema12, prema26, predea, _, _, _, err = s.GetLastMacd(kl, 1)
 		if err != nil {
