@@ -203,18 +203,18 @@ func (s *StratMacd) GetMacd(kl protocol.KLineType, time int64) (EMA12, EMA26, DE
 
 func (s *StratMacd) doOrder(kl protocol.KLineType, lastMacd float64, time int64) {
 
-	if kl != protocol.SPIDER_TYPE_KLINE_HOUR {
-		return
-	}
+	//	if kl != protocol.SPIDER_TYPE_KLINE_HOUR {
+	//		return
+	//	}
 	_, _, _, _, macd, _, err := s.GetLastMacd(kl, 1)
 	if err != nil {
 		return
 	}
 	if macd <= 0 && lastMacd > 0 {
-		fmt.Println("======Buy=====:", s.skl.GetTicker().Last, lastMacd-macd, time)
+		fmt.Println("======Buy=====:", kl, s.skl.GetTicker().Last, lastMacd-macd, time)
 	}
 	if macd >= 0 && lastMacd < 0 {
-		fmt.Println("======Sell=====:", s.skl.GetTicker().Last, lastMacd-macd, time)
+		fmt.Println("======Sell=====:", kl, s.skl.GetTicker().Last, lastMacd-macd, time)
 	}
 	return
 }
