@@ -89,6 +89,7 @@ func (s *StratMacd) SetMacd(kl protocol.KLineType, ema12, ema26, dea, dif, macd 
 			EMA26: ema26,
 			DEA:   dea,
 			DIF:   dif,
+			MACD:  macd,
 			Time:  time,
 		}
 		if num, err := database.SetMACD_Hour(macd); err != nil || num == 0 {
@@ -103,6 +104,7 @@ func (s *StratMacd) SetMacd(kl protocol.KLineType, ema12, ema26, dea, dif, macd 
 			EMA26: ema26,
 			DEA:   dea,
 			DIF:   dif,
+			MACD:  macd,
 			Time:  time,
 		}
 		if num, err := database.SetMACD_Day(macd); err != nil || num == 0 {
