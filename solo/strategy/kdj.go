@@ -96,7 +96,7 @@ func (s *StratKDJ) GetLastKDJ(kl protocol.KLineType, offset int64) (k, d, j, rsv
 
 		var kdj []database.KDJ_5Min
 
-		if _, err := database.GetKDJ_5Min_Last(&kdj, 1, offset); err != nil {
+		if _, err := database.GetKDJ_5Min_Last(&kdj, 1, offset); err != nil || len(kdj) == 0 {
 			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastKDJ Error %v %v", kl, offset)
 		}
 		return kdj[0].K, kdj[0].D, kdj[0].J, kdj[0].RSV, kdj[0].Time, nil
