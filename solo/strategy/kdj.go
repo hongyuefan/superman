@@ -150,9 +150,7 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 		return fmt.Errorf("kline %v not enough data", kl)
 	}
 
-	k, d, j, rsv, t, err := s.GetKDJ(kl, kls[0].Time)
-
-	fmt.Println("getkdj:", k, d, j, rsv, t, kls[0].Time, err)
+	_, _, _, _, _, err = s.GetKDJ(kl, kls[0].Time)
 
 	if err != nil {
 
@@ -164,11 +162,11 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 
 		curRSV = s.rsv(kls[0].Close, kls[1:])
 
-		curK := 2/3*preK + 1/3*curRSV
+		curK := float64(2)/float64(3)*preK + float64(1)/float64(3)*curRSV
 
-		curD := 2/3*preD + 1/3*curK
+		curD := float64(2)/float64(3)*preD + float64(1)/float64(3)*curK
 
-		curJ := 3*curK - 2*curD
+		curJ := float64(3)*curK - float64(2)*curD
 
 		if err := s.SetKDJ(kl, curK, curD, curJ, curRSV, kls[0].Time); err != nil {
 			return err
@@ -219,9 +217,6 @@ func (s *StratKDJ) rsv(c float64, arrys []base.KLineDetail) float64 {
 			high = d.High
 		}
 	}
-
-	fmt.Println("high:", high, "low:", low)
-
 	return (c - low) / (high - low) * 100
 }
 
