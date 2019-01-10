@@ -14,7 +14,7 @@ func RunServer() {
 
 	database.RegistDB()
 
-	strat := strategy.NewStratMacd()
+	strat := strategy.NewStratKDJ()
 
 	strat.Init()
 

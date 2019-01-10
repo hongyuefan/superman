@@ -38,7 +38,7 @@ func NewStratKDJ() *StratKDJ {
 	}
 }
 
-func (s *StratKDJ) OnInit() {
+func (s *StratKDJ) Init() {
 
 	s.skl.Init()
 
