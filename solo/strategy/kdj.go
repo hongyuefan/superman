@@ -150,7 +150,9 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 		return fmt.Errorf("kline %v not enough data", kl)
 	}
 
-	_, _, _, _, _, err = s.GetKDJ(kl, kls[0].Time)
+	k, d, j, rsv, t, err = s.GetKDJ(kl, kls[0].Time)
+
+	fmt.Println("getkdj:", k, d, j, rsv, t, kls[0].Time, err)
 
 	if err != nil {
 
