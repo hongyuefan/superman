@@ -111,7 +111,7 @@ func (s *StratKDJ) GetKDJ(kl protocol.KLineType, time int64) (k, d, j, rsv float
 
 	case protocol.SPIDER_TYPE_KLINE_5MIN:
 
-		var kdj database.KDJ_5Min
+		kdj := database.KDJ_5Min{Time: time}
 
 		if err := database.GetKDJ_5Min(&kdj, "time"); err != nil {
 			return 0, 0, 0, 0, 0, err
