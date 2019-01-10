@@ -269,7 +269,7 @@ func (s *StratKDJ) judgeKDJ(kl protocol.KLineType) {
 
 	if err != nil {
 
-		if err = s.SetKDJ(kl, 50, 50, 50, 0, 0); err != nil {
+		if err = s.SetKDJ(kl, 50, 50, 50, 0, 123); err != nil {
 			logs.Error("kline %v setKDJ error:%v", kl, err)
 			return
 		}
