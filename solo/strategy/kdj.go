@@ -145,8 +145,6 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 	//获取kline数据
 	kls, ok := s.skl.GetKline(kl, 10)
 
-	fmt.Println(len(kls), kls)
-
 	if !ok || len(kls) < 10 {
 		return fmt.Errorf("kline %v not enough data", kl)
 	}
@@ -236,7 +234,9 @@ func (s *StratKDJ) dispatchMsg(symbol string, notice protocol.NoticeType) {
 
 		}
 
-		s.Calculation(protocol.SPIDER_TYPE_KLINE_5MIN)
+		if err := s.Calculation(protocol.SPIDER_TYPE_KLINE_5MIN); err != nil {
+			fmt.Println("calculate error:", err)
+		}
 
 		break
 
