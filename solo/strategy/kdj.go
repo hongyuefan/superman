@@ -6,6 +6,7 @@ import (
 
 	"github.com/hongyuefan/superman/logs"
 	"github.com/hongyuefan/superman/protocol"
+	"github.com/hongyuefan/superman/solo/base"
 	"github.com/hongyuefan/superman/solo/database"
 	"github.com/hongyuefan/superman/solo/skeleton"
 )
@@ -66,7 +67,7 @@ func (s *StratKDJ) OnClose() {
 
 }
 
-func (s *StratKDJ) SetKDJ(kl protocol.KLineType, K, D, J, RSV, time int64) error {
+func (s *StratKDJ) SetKDJ(kl protocol.KLineType, K, D, J, RSV float64, time int64) error {
 
 	switch kl {
 
@@ -97,7 +98,7 @@ func (s *StratKDJ) GetLastKDJ(kl protocol.KLineType, offset int64) (k, d, j, rsv
 		if _, err := database.GetKDJ_5Min_Last(&kdj, 1, offset); err != nil || len(kdj) == 0 {
 			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastKDJ Error ")
 		}
-		return kdj[0].K, kdj[0].D, kdj[0].J, kdj[0].RSV, macd[0].Time, nil
+		return kdj[0].K, kdj[0].D, kdj[0].J, kdj[0].RSV, kdj[0].Time, nil
 
 	}
 	return 0, 0, 0, 0, 0, fmt.Errorf("kline type not surpost %v", kl)
@@ -109,63 +110,114 @@ func (s *StratKDJ) GetKDJ(kl protocol.KLineType, time int64) (k, d, j, rsv float
 
 	case protocol.SPIDER_TYPE_KLINE_5MIN:
 
-		kdj := []database.KDJ_5Min{}
+		kdj := database.KDJ_5Min{}
 
-		if err := database.GetKDJ_5Min(kdj, "time"); err != nil {
-			return 0, 0, 0, 0, err
+		if err := database.GetKDJ_5Min(&kdj, "time"); err != nil {
+			return 0, 0, 0, 0, 0, err
 		}
-		return kdj.K, kdj.D, kdj.j, kdj.RSV, kdj.Time, nil
+		return kdj.K, kdj.D, kdj.J, kdj.RSV, kdj.Time, nil
 	}
 	return 0, 0, 0, 0, 0, fmt.Errorf("kline type not surpost %v", kl)
 
 }
 
+func (s *StratKDJ) doOrder(kl protocol.KLineType, preK, curK float64) {
+
+	if (curK <= 20 && curK > preK) || (curK > 50 && curK <= 80 && curK > preK) {
+		fmt.Println("======Buy=====:", kl, s.skl.GetTicker().Last, curK-preK)
+	}
+
+	if (curK >= 0 && curK < preK) || (curK > 20 && curK <= 50 && curK < preK) {
+		fmt.Println("======Sell=====:", kl, s.skl.GetTicker().Last, curK-preK)
+	}
+	return
+}
+
 func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 
 	var (
-		preK    float64
-		preD    float64
-		preJ    float64
-		preRSV  float64
-		pretime int64
-		err     error
+		preK   float64
+		preD   float64
+		curRSV float64
+		err    error
 	)
+
 	//获取kline数据
-	kls, ok := s.skl.GetKline(kl, 1)
+	kls, ok := s.skl.GetKline(kl, 10)
+
 	if !ok {
 		return fmt.Errorf("kline %v no data", kl)
 	}
 
 	_, _, _, _, _, err = s.GetKDJ(kl, kls[0].Time)
+
 	if err != nil {
-		preK, preD, preJ, _, pretime, err = s.GetLastKDJ(kl, 0)
+
+		preK, preD, _, _, _, err = s.GetLastKDJ(kl, 0)
+
 		if err != nil {
 			return err
 		}
-		s.doOrder(kl, premacd, pretime)
+
+		curRSV = s.rsv(kls[0].Close, kls[1:])
+
+		curK := 2/3*preK + 1/3*curRSV
+
+		curD := 2/3*preD + 1/3*curK
+
+		curJ := 3*curK - 2*curD
+
+		if err := s.SetKDJ(kl, curK, curD, curJ, curRSV, kls[0].Time); err != nil {
+			return err
+		}
+
+		fmt.Println("Calculation:", kl, "K:", curK, "D:", curD, "J:", curJ, "RSV:", curRSV, "TIME:", kls[0].Time)
+
+		s.doOrder(kl, preK, curK)
+
 	} else {
-		preK, preD, preJ, _, _, err = s.GetLastMacd(kl, 1)
+
+		preK, preD, _, _, _, err = s.GetLastKDJ(kl, 1)
+
 		if err != nil {
 			return err
 		}
+
+		curRSV = s.rsv(kls[0].Close, kls[:9])
+
+		curK := 2/3*preK + 1/3*curRSV
+
+		curD := 2/3*preD + 1/3*curK
+
+		curJ := 3*curK - 2*curD
+
+		if err := s.SetKDJ(kl, curK, curD, curJ, curRSV, kls[0].Time); err != nil {
+			return err
+		}
+
+		fmt.Println("Calculation:", kl, "K:", curK, "D:", curD, "J:", curJ, "RSV:", curRSV, "TIME:", kls[0].Time)
 	}
-
-	//计算ema指数
-	curEMA12 := prema12*11/13 + kls[0].Close*2/13
-	curEMA26 := prema26*25/27 + kls[0].Close*2/27
-
-	//计算当前 dif、dea 指标
-	DIF := curEMA12 - curEMA26
-	DEA := predea*8/10 + DIF*2/10
-	MACD := (DIF - DEA) * 2
-
-	if err := s.SetMacd(kl, curEMA12, curEMA26, DEA, DIF, MACD, kls[0].Time); err != nil {
-		return err
-	}
-
-	fmt.Println("Calculation:", kl, "EMA12:", curEMA12, "EMA26:", curEMA26, "DIF:", DIF, "DEA:", DEA, "MACD:", MACD, "TIME:", kls[0].Time)
 
 	return nil
+}
+
+func (s *StratKDJ) rsv(c float64, arrys []base.KLineDetail) float64 {
+
+	var (
+		low  float64 = 999999
+		high float64 = 0
+	)
+
+	for _, d := range arrys {
+		if d.Low < low {
+			low = d.Low
+		}
+		if d.High > high {
+			high = d.High
+		}
+	}
+
+	return (c - low) / (high - low) * 100
 }
 
 func (s *StratKDJ) dispatchMsg(symbol string, notice protocol.NoticeType) {
@@ -195,4 +247,26 @@ func (s *StratKDJ) dispatchMsg(symbol string, notice protocol.NoticeType) {
 
 func (s *StratKDJ) judgeKDJ(kl protocol.KLineType) {
 
+	var err error
+
+	kls, ok := s.skl.GetKline(kl, 1)
+
+	if !ok {
+		logs.Error("kline %v no data", kl)
+		return
+	}
+
+	_, _, _, _, _, err = s.GetLastKDJ(kl, 0)
+
+	if err != nil {
+
+		if err = s.SetKDJ(kl, 50, 50, 50, 0, kls[0].Time); err != nil {
+			logs.Error("kline %v setKDJ error:%v", kl, err)
+			return
+		}
+	}
+
+	s.mapFlag[kl] = true
+
+	return
 }
