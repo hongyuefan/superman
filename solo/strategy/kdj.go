@@ -145,6 +145,8 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 	//获取kline数据
 	kls, ok := s.skl.GetKline(kl, 10)
 
+	fmt.Println(len(kls), kls)
+
 	if !ok || len(kls) < 10 {
 		return fmt.Errorf("kline %v not enough data", kl)
 	}
@@ -216,6 +218,8 @@ func (s *StratKDJ) rsv(c float64, arrys []base.KLineDetail) float64 {
 			high = d.High
 		}
 	}
+
+	fmt.Println("high:", high, "low:", low)
 
 	return (c - low) / (high - low) * 100
 }
