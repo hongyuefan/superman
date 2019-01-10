@@ -48,6 +48,6 @@ func TestKDJ(t *testing.T) {
 
 	num, err = SetKDJ_5Min(&v1)
 
-	t.Log(num, err, float64(2)/float64(3)*29)
+	t.Log(num, err, float64(2)/float64(3)*0.3)
 
 }

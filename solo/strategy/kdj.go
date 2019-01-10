@@ -186,11 +186,11 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 
 		curRSV = s.rsv(kls[0].Close, kls[:9])
 
-		curK := 2/3*preK + 1/3*curRSV
+		curK := float64(2)/float64(3)*preK + float64(1)/float64(3)*curRSV
 
-		curD := 2/3*preD + 1/3*curK
+		curD := float64(2)/float64(3)*preD + float64(1)/float64(3)*curK
 
-		curJ := 3*curK - 2*curD
+		curJ := float64(3)*curK - float64(2)*curD
 
 		if err := s.SetKDJ(kl, curK, curD, curJ, curRSV, kls[0].Time); err != nil {
 			return err
