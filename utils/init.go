@@ -33,7 +33,7 @@ func InitLogger(app string, level int) {
 }
 
 func InitCnf() {
-	var cnfPath *string = flag.String("c", "../lapf.cnf", "app config file")
+	var cnfPath *string = flag.String("c", "./lapf.cnf", "app config file")
 	flag.Parse()
 
 	err := config.T.LoadConfig(*cnfPath)

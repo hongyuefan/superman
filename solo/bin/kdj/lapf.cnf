@@ -10,5 +10,5 @@
 	"klines":"5min,15min,30min,1hour,day",
 	"depth":"5",
 	"heart_beat":5,
-	"strategy":"macd"
+	"strategy":"kdj"
 }

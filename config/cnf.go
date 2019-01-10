@@ -11,6 +11,7 @@ type AppCnf struct {
 	ScretKey   string
 	PassPhrase string
 	EndPoint   string
+	Strategy   string
 
 	WsUrl     string
 	Symbol    string
@@ -34,6 +35,7 @@ func (c *AppCnf) LoadConfig(cnfPath string) (err error) {
 	c.ScretKey = cnf.String("secret_key")
 	c.PassPhrase = cnf.String("pass_phrase")
 	c.EndPoint = cnf.String("end_point")
+	c.Strategy = cnf.String("strategy")
 
 	c.WsUrl = cnf.String("ws_url")
 	c.Symbol = cnf.String("symbols")

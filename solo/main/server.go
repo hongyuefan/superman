@@ -5,16 +5,32 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/hongyuefan/superman/config"
 	"github.com/hongyuefan/superman/logs"
 	"github.com/hongyuefan/superman/solo/database"
 	"github.com/hongyuefan/superman/solo/strategy"
 )
 
+type StrateGY interface {
+	Init()
+	OnTicker()
+	OnClose()
+}
+
 func RunServer() {
 
 	database.RegistDB()
 
-	strat := strategy.NewStratKDJ()
+	var strat StrateGY
+
+	switch config.T.Strategy {
+	case "macd":
+		strat = strategy.NewStratKDJ()
+		break
+	case "kdj":
+		strat = strategy.NewStratMacd()
+		break
+	}
 
 	strat.Init()
 
