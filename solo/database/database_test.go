@@ -23,12 +23,26 @@ func TestRegist(t *testing.T) {
 //	t.Log(id, err)
 //}
 
-func TestMacd(t *testing.T) {
+//func TestMacd(t *testing.T) {
 
-	var v []MACD_5Min
+//	var v []MACD_5Min
 
-	num, err := GetMACD_5Min_Last(&v, -1, 0)
+//	num, err := GetMACD_5Min_Last(&v, -1, 0)
+
+//	t.Log(num, err, v)
+
+//}
+
+func TestKDJ(t *testing.T) {
+
+	var v []KDJ_5Min
+	var v1 KDJ_5Min = KDJ_5Min{Time: 1111}
+
+	num, err := GetKDJ_5Min_Last(&v, 1, 0)
 
 	t.Log(num, err, v)
 
+	err = GetKDJ_5Min(&v1, "time")
+
+	t.Log(err, v1)
 }

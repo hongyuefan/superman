@@ -93,7 +93,9 @@ func (s *StratKDJ) GetLastKDJ(kl protocol.KLineType, offset int64) (k, d, j, rsv
 
 	case protocol.SPIDER_TYPE_KLINE_5MIN:
 
-		kdj := []database.KDJ_5Min{}
+		var kdj []database.KDJ_5Min
+
+		fmt.Println("GetLastKDJ offset:", offset)
 
 		if _, err := database.GetKDJ_5Min_Last(&kdj, 1, offset); err != nil || len(kdj) == 0 {
 			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastKDJ Error ")
@@ -110,7 +112,7 @@ func (s *StratKDJ) GetKDJ(kl protocol.KLineType, time int64) (k, d, j, rsv float
 
 	case protocol.SPIDER_TYPE_KLINE_5MIN:
 
-		kdj := database.KDJ_5Min{}
+		var kdj database.KDJ_5Min
 
 		if err := database.GetKDJ_5Min(&kdj, "time"); err != nil {
 			return 0, 0, 0, 0, 0, err
