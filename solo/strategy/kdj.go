@@ -89,16 +89,15 @@ func (s *StratKDJ) SetKDJ(kl protocol.KLineType, K, D, J, RSV float64, time int6
 }
 
 func (s *StratKDJ) GetLastKDJ(kl protocol.KLineType, offset int64) (k, d, j, rsv float64, Time int64, err error) {
+
 	switch kl {
 
 	case protocol.SPIDER_TYPE_KLINE_5MIN:
 
 		var kdj []database.KDJ_5Min
 
-		fmt.Println("GetLastKDJ offset:", offset)
-
-		if _, err := database.GetKDJ_5Min_Last(&kdj, 1, offset); err != nil || len(kdj) == 0 {
-			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastKDJ Error ")
+		if _, err := database.GetKDJ_5Min_Last(&kdj, 1, offset); err != nil {
+			return 0, 0, 0, 0, 0, fmt.Errorf("GetLastKDJ Error %v %v", kl, offset)
 		}
 		return kdj[0].K, kdj[0].D, kdj[0].J, kdj[0].RSV, kdj[0].Time, nil
 
@@ -160,6 +159,8 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 		if err != nil {
 			return err
 		}
+
+		fmt.Println("before rsv :", kls[0].Close, kls[1:])
 
 		curRSV = s.rsv(kls[0].Close, kls[1:])
 
