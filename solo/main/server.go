@@ -24,10 +24,10 @@ func RunServer() {
 	var strat StrateGY
 
 	switch config.T.Strategy {
-	case "macd":
+	case "kdj":
 		strat = strategy.NewStratKDJ()
 		break
-	case "kdj":
+	case "macd":
 		strat = strategy.NewStratMacd()
 		break
 	}
