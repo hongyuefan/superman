@@ -249,7 +249,7 @@ func (s *StratKDJ) judgeKDJ(kl protocol.KLineType) {
 
 	var err error
 
-	kls, ok := s.skl.GetKline(kl, 1)
+	_, ok := s.skl.GetKline(kl, 1)
 
 	if !ok {
 		logs.Error("kline %v no data", kl)
