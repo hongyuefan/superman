@@ -145,8 +145,8 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 	//获取kline数据
 	kls, ok := s.skl.GetKline(kl, 10)
 
-	if !ok {
-		return fmt.Errorf("kline %v no data", kl)
+	if !ok || len(kls) < 10 {
+		return fmt.Errorf("kline %v not enough data", kl)
 	}
 
 	_, _, _, _, _, err = s.GetKDJ(kl, kls[0].Time)
