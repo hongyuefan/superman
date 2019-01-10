@@ -169,6 +169,8 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 
 		curJ := 3*curK - 2*curD
 
+		fmt.Println("setkdj:", curRSV, curK, curD, curJ, kls[0].Time)
+
 		if err := s.SetKDJ(kl, curK, curD, curJ, curRSV, kls[0].Time); err != nil {
 			return err
 		}

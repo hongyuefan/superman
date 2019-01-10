@@ -45,4 +45,8 @@ func TestKDJ(t *testing.T) {
 	err = GetKDJ_5Min(&v1, "time")
 
 	t.Log(err, v1)
+
+	num, err = SetKDJ_5Min(&v1)
+
+	t.Log(num, err)
 }
