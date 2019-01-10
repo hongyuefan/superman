@@ -160,8 +160,6 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 			return err
 		}
 
-		fmt.Println("before rsv :", kls[0].Close, kls[1:])
-
 		curRSV = s.rsv(kls[0].Close, kls[1:])
 
 		curK := 2/3*preK + 1/3*curRSV
@@ -169,8 +167,6 @@ func (s *StratKDJ) Calculation(kl protocol.KLineType) error {
 		curD := 2/3*preD + 1/3*curK
 
 		curJ := 3*curK - 2*curD
-
-		fmt.Println("setkdj:", curRSV, curK, curD, curJ, kls[0].Time)
 
 		if err := s.SetKDJ(kl, curK, curD, curJ, curRSV, kls[0].Time); err != nil {
 			return err
@@ -269,7 +265,7 @@ func (s *StratKDJ) judgeKDJ(kl protocol.KLineType) {
 
 	if err != nil {
 
-		if err = s.SetKDJ(kl, 50, 50, 50, 0, 123); err != nil {
+		if err = s.SetKDJ(kl, 50, 50, 50, 0, 0); err != nil {
 			logs.Error("kline %v setKDJ error:%v", kl, err)
 			return
 		}
