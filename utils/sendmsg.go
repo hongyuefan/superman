@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
-	"panda/arithmetic"
 	"time"
 )
 
@@ -51,7 +51,7 @@ func SigMsg(mobile, appKey, sRand, sTime string) string {
 
 func SendMsg(appId, appKey, nation, mobile string, params []string, tplId int) (err error) {
 
-	sRand := arithmetic.GetRandLimit(4)
+	sRand := GetRandLimit(4)
 
 	nowTime := time.Now().Unix()
 
@@ -69,6 +69,17 @@ func SendMsg(appId, appKey, nation, mobile string, params []string, tplId int) (
 	}
 
 	return MsgPostReq(appId, sRand, reqMsg)
+}
+
+func GetRandLimit(count int) (result string) {
+
+	for i := 0; i < count; i++ {
+
+		srand := rand.Intn(9)
+
+		result += fmt.Sprintf("%v", int(srand))
+	}
+	return
 }
 
 func MsgPostReq(appId, sRand string, reqMsg ReqMsg) (err error) {
