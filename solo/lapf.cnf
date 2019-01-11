@@ -8,7 +8,12 @@
 	"ws_url":"wss://real.okex.com:10441/websocket",
 	"symbols":"eth_usdt",
 	"klines":"5min,15min,30min,1hour,day",
+	"rates":"1,2,4,5,7",
 	"depth":"5",
 	"heart_beat":5,
-	"strategy":"macd"
+	"strategy":"macd",
+	"app_id":"1400081071",
+	"app_key":"8bd9c73577e97decf4772defa48d1066",
+	"tpl_id":264504,
+	"mobile":"15600199768"
 }

@@ -24,6 +24,8 @@ func RunServer() {
 	var strat StrateGY
 
 	switch config.T.Strategy {
+	case "updown":
+		strat = strategy.NewStratUpDown()
 	case "kdj":
 		strat = strategy.NewStratKDJ()
 		break

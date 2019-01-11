@@ -13,6 +13,12 @@ type AppCnf struct {
 	EndPoint   string
 	Strategy   string
 
+	AppID  string
+	AppKey string
+	TplId  int
+	Mobile string
+	Rates  string
+
 	WsUrl     string
 	Symbol    string
 	Kline     string
@@ -42,6 +48,12 @@ func (c *AppCnf) LoadConfig(cnfPath string) (err error) {
 	c.Kline = cnf.String("klines")
 	c.Depth = cnf.String("depth")
 	c.HeartBeat, _ = cnf.Int64("heart_beat")
+
+	c.AppID = cnf.String("app_id")
+	c.AppKey = cnf.String("app_key")
+	c.TplId, _ = cnf.Int("tpl_id")
+	c.Mobile = cnf.String("mobile")
+	c.Rates = cnf.String("rates")
 
 	return err
 }
