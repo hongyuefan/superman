@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"time"
 
 	"sync"
 
@@ -15,9 +16,12 @@ import (
 	"github.com/hongyuefan/superman/utils"
 )
 
+var TIMEOUT int64 = 300
+
 type StratUpDown struct {
 	skl       *skeleton.Skeleton
 	lock      sync.RWMutex
+	touched   int64
 	chanClose chan bool
 	mapRate   map[protocol.KLineType]float64
 }
@@ -60,6 +64,34 @@ func (s *StratUpDown) OnClose() {
 
 	close(s.chanClose)
 
+}
+
+func (s *StratUpDown) setTouched(b int64) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	s.touched = b
+}
+
+func (s *StratUpDown) getTouched() int64 {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+	return s.touched
+}
+
+func (s *StratUpDown) isOK() bool {
+	s.lock.RLock()
+	defer s.lock.RUnlock()
+
+	now := time.Now().Unix()
+
+	if now-s.touched > TIMEOUT {
+
+		s.touched = now
+
+		return true
+	}
+
+	return false
 }
 
 func (s *StratUpDown) initRates(ss string) {
@@ -136,15 +168,18 @@ func (s *StratUpDown) touchMsg(typ protocol.KLineType) {
 			ud = "下跌"
 		}
 
-		params = append(params, typ.String(), ud, fmt.Sprintf("%v", math.Abs(rate)), fmt.Sprintf("%v", kls[0].Close), config.T.Symbol)
+		params = append(params, typ.String(), ud, fmt.Sprintf("%2.2f", math.Abs(rate)), fmt.Sprintf("%2.2f", kls[0].Close), config.T.Symbol)
 
 		mobiles := utils.ParseStringToArry(config.T.Mobile, ",")
 
-		for _, mobile := range mobiles {
-			if err := utils.SendMsg(config.T.AppID, config.T.AppKey, "86", mobile, params, config.T.TplId); err != nil {
-				logs.Error("send msg error:", err.Error())
+		if s.isOK() {
+			for _, mobile := range mobiles {
+				if err := utils.SendMsg(config.T.AppID, config.T.AppKey, "86", mobile, params, config.T.TplId); err != nil {
+					logs.Error("send msg error:", err.Error())
+				}
 			}
 		}
+
 	}
 
 }
