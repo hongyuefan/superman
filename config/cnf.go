@@ -12,6 +12,7 @@ type AppCnf struct {
 	PassPhrase string
 	EndPoint   string
 	Strategy   string
+	Port       string
 
 	AppID  string
 	AppKey string
@@ -36,6 +37,7 @@ func (c *AppCnf) LoadConfig(cnfPath string) (err error) {
 	c.CnfPath = cnfPath
 	c.LogPath = cnf.String("log")
 	c.SqlCon = cnf.String("sqlcon")
+	c.Port = cnf.String("port")
 
 	c.ApiKey = cnf.String("api_key")
 	c.ScretKey = cnf.String("secret_key")

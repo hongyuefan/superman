@@ -1,6 +1,7 @@
 {
     "log": "../log",
 	"sqlcon":"",
+	"port":"8765",
 	"api_key":"413eb727-1177-4404-a47b-ef94f414fab8",
 	"secret_key":"18DDC1E0231CA70260AE4711E0A3FA48",
 	"pass_phrase":"15600199768",

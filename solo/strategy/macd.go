@@ -5,6 +5,7 @@ import (
 
 	"sync"
 
+	gin "github.com/gin-gonic/gin"
 	"github.com/hongyuefan/superman/logs"
 	"github.com/hongyuefan/superman/protocol"
 	"github.com/hongyuefan/superman/solo/database"
@@ -46,6 +47,9 @@ func (s *StratMacd) Init() {
 	s.skl.Init()
 
 	return
+}
+
+func (s *StratMacd) Handler(c *gin.Context) {
 }
 
 func (s *StratMacd) SetMacd(kl protocol.KLineType, ema12, ema26, dea, dif, macd float64, time int64) error {

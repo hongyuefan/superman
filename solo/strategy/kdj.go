@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	gin "github.com/gin-gonic/gin"
 	"github.com/hongyuefan/superman/logs"
 	"github.com/hongyuefan/superman/protocol"
 	"github.com/hongyuefan/superman/solo/base"
@@ -243,6 +244,9 @@ func (s *StratKDJ) dispatchMsg(symbol string, notice protocol.NoticeType) {
 	case protocol.NOTICE_KLINE_DAY:
 		break
 	}
+}
+
+func (s *StratKDJ) Handler(c *gin.Context) {
 }
 
 func (s *StratKDJ) judgeKDJ(kl protocol.KLineType) {

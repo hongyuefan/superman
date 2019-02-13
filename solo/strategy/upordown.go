@@ -8,10 +8,10 @@ import (
 
 	"sync"
 
+	gin "github.com/gin-gonic/gin"
 	"github.com/hongyuefan/superman/config"
 	"github.com/hongyuefan/superman/logs"
 	"github.com/hongyuefan/superman/protocol"
-
 	"github.com/hongyuefan/superman/solo/skeleton"
 	"github.com/hongyuefan/superman/utils"
 )
@@ -145,6 +145,9 @@ func (s *StratUpDown) dispatchMsg(symbol string, notice protocol.NoticeType) {
 		s.touchMsg(protocol.SPIDER_TYPE_KLINE_DAY)
 		break
 	}
+}
+
+func (s *StratUpDown) Handler(c *gin.Context) {
 }
 
 func (s *StratUpDown) touchMsg(typ protocol.KLineType) {
