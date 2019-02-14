@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"time"
 
 	gin "github.com/gin-gonic/gin"
 	"github.com/hongyuefan/superman/config"
@@ -11,17 +12,25 @@ import (
 	"github.com/hongyuefan/superman/protocol"
 	"github.com/hongyuefan/superman/solo/skeleton"
 	"github.com/hongyuefan/superman/utils"
+	"github.com/okcoin-okex/open-api-v3-sdk/okex-go-sdk-api"
 )
 
 type SampleSt struct {
-	skl *skeleton.Skeleton
-
+	skl       *skeleton.Skeleton
+	client    *okex.Client
 	chanClose chan bool
 	mapRate   map[protocol.KLineType]float64
 
-	lock      sync.RWMutex
+	plock     sync.RWMutex
 	buyPrice  float64
 	sellPrice float64
+
+	slock   sync.RWMutex
+	usdtSig bool
+	ethSig  bool
+
+	usdt string
+	eth  string
 }
 
 func NewSampleSt() *SampleSt {
@@ -29,7 +38,7 @@ func NewSampleSt() *SampleSt {
 		skl:       skeleton.NewSkeleton(),
 		chanClose: make(chan bool, 0),
 		mapRate:   make(map[protocol.KLineType]float64, 0),
-
+		client:    NewOKClient(),
 		buyPrice:  0,
 		sellPrice: 10000000,
 	}
@@ -42,9 +51,61 @@ func (s *SampleSt) Init() {
 	return
 }
 
+func (s *SampleSt) setUsdtSig(sig bool) {
+	s.slock.Lock()
+	defer s.slock.Unlock()
+	s.usdtSig = sig
+}
+
+func (s *SampleSt) getUsdtSig() bool {
+	s.slock.RLock()
+	defer s.slock.RUnlock()
+	return s.usdtSig
+}
+
+func (s *SampleSt) setEthSig(sig bool) {
+	s.slock.Lock()
+	defer s.slock.Unlock()
+	s.ethSig = sig
+}
+
+func (s *SampleSt) getEthSig() bool {
+	s.slock.RLock()
+	defer s.slock.RUnlock()
+	return s.ethSig
+}
+
+func (s *SampleSt) getMoneyTimer() {
+
+	timer := time.NewTicker(time.Second * 60)
+
+	for {
+		select {
+		case <-timer.C:
+			if s.getUSDT() >= 1.0 {
+				s.setUsdtSig(true)
+			} else {
+				s.setUsdtSig(false)
+			}
+
+			if s.getETH() >= 0.01 {
+				s.setEthSig(true)
+			} else {
+				s.setEthSig(false)
+			}
+
+		case <-s.chanClose:
+			timer.Stop()
+			return
+		}
+	}
+
+}
+
 func (s *SampleSt) OnTicker() {
 
 	go s.skl.Run()
+	go s.getMoneyTimer()
 
 	for {
 		select {
@@ -65,16 +126,31 @@ func (s *SampleSt) OnClose() {
 
 }
 
+func NewOKClient() *okex.Client {
+
+	var okcf okex.Config
+
+	okcf.Endpoint = config.T.EndPoint
+	okcf.ApiKey = config.T.ApiKey
+	okcf.SecretKey = config.T.ScretKey
+	okcf.Passphrase = config.T.PassPhrase
+	okcf.TimeoutSecond = 45
+	okcf.IsPrint = false
+	okcf.I18n = okex.ENGLISH
+
+	return okex.NewClient(okcf)
+}
+
 func (s *SampleSt) setPrice(b, ss float64) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+	s.plock.Lock()
+	defer s.plock.Unlock()
 	s.buyPrice = b
 	s.sellPrice = ss
 }
 
 func (s *SampleSt) getPrice() (float64, float64) {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
+	s.plock.RLock()
+	defer s.plock.RUnlock()
 	return s.buyPrice, s.sellPrice
 }
 
@@ -99,6 +175,92 @@ func (s *SampleSt) dispatchMsg(symbol string, notice protocol.NoticeType) {
 	}
 }
 
+func (s *SampleSt) getUSDT() float64 {
+
+	var (
+		count   int
+		balance float64
+	)
+
+	for {
+		count++
+		result, err := s.client.SpotGetAccountCurrency(okex.SpotAccountParams{Currency: "USDT"})
+		if err != nil {
+			if count > 3 {
+				break
+			} else {
+				continue
+			}
+		}
+
+		balance, err = strconv.ParseFloat(result.Balance, 64)
+		if err != nil {
+			if count > 3 {
+				break
+			} else {
+				continue
+			}
+		}
+
+		s.usdt = result.Balance
+
+		fmt.Println("usdt balance :", s.usdt)
+
+		break
+	}
+
+	return balance
+
+}
+func (s *SampleSt) getETH() float64 {
+
+	var (
+		count   int
+		balance float64
+	)
+
+	for {
+		count++
+		result, err := s.client.SpotGetAccountCurrency(okex.SpotAccountParams{Currency: "ETH"})
+		if err != nil {
+			if count > 3 {
+				break
+			} else {
+				continue
+			}
+		}
+
+		balance, err = strconv.ParseFloat(result.Balance, 64)
+		if err != nil {
+			if count > 3 {
+				break
+			} else {
+				continue
+			}
+		}
+
+		s.eth = result.Balance
+
+		fmt.Println("eth balance :", s.eth)
+
+		break
+	}
+
+	return balance
+}
+
+func (s *SampleSt) doOrder(tpe, side, instrumentId, size, notional string) bool {
+
+	result, err := s.client.SpotDoOrder(okex.SpotOrderParams{Type: tpe, Side: side, InstrumentId: instrumentId, Size: size, Notional: notional})
+
+	if err != nil {
+		fmt.Println("doOrder error:", tpe, side, instrumentId, size, notional, err.Error())
+		return false
+	}
+
+	return result.Result
+}
+
 func (s *SampleSt) touchMsg(typ protocol.KLineType) {
 
 	var params []string
@@ -109,20 +271,28 @@ func (s *SampleSt) touchMsg(typ protocol.KLineType) {
 		return
 	}
 
-	if kls[0].Close <= s.buyPrice {
+	if kls[0].Close <= s.buyPrice && s.getUsdtSig() {
 
 		params = append(params, fmt.Sprintf("%2.2f", s.buyPrice), fmt.Sprintf("%2.2f", kls[0].Close), config.T.Symbol)
 
 		s.sendMsg(278087, params)
+
+		s.doOrder("market", "buy", "eth-usdt", "", s.usdt)
+
+		s.setUsdtSig(false)
 	}
 
-	if kls[0].Close >= s.sellPrice {
+	if kls[0].Close >= s.sellPrice && s.getEthSig() {
 
 		rate := (kls[0].Close - s.buyPrice) / s.buyPrice * float64(100)
 
 		params = append(params, fmt.Sprintf("%2.2f", s.buyPrice), fmt.Sprintf("%2.2f", kls[0].Close), fmt.Sprintf("%2.2f", rate), config.T.Symbol)
 
 		s.sendMsg(278086, params)
+
+		s.doOrder("market", "sell", "eth-usdt", s.eth, "")
+
+		s.setEthSig(false)
 	}
 
 }
@@ -162,6 +332,7 @@ func (s *SampleSt) Handler(c *gin.Context) {
 	fmt.Println("set buy and sell price:", sBuy, sSell)
 
 	HandleSuccessMsg(c, "Handler", "success")
+
 	return
 errDeal:
 	HandleErrorMsg(c, "Handler", err.Error())
