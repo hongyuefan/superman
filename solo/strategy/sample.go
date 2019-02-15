@@ -185,6 +185,7 @@ func (s *SampleSt) getUSDT() float64 {
 	for {
 		count++
 		result, err := s.client.SpotGetAccountCurrency(okex.SpotAccountParams{Currency: "USDT"})
+		fmt.Println(result, err)
 		if err != nil {
 			if count > 3 {
 				break
@@ -222,6 +223,7 @@ func (s *SampleSt) getETH() float64 {
 	for {
 		count++
 		result, err := s.client.SpotGetAccountCurrency(okex.SpotAccountParams{Currency: "ETH"})
+		fmt.Println(result, err)
 		if err != nil {
 			if count > 3 {
 				break
