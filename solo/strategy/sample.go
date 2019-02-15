@@ -94,6 +94,8 @@ func (s *SampleSt) getMoneyTimer() {
 				s.setEthSig(false)
 			}
 
+			fmt.Println("usdt balance :", s.usdt, "eth balance :", s.eth)
+
 		case <-s.chanClose:
 			timer.Stop()
 			return
@@ -185,7 +187,6 @@ func (s *SampleSt) getUSDT() float64 {
 	for {
 		count++
 		result, err := s.client.SpotGetAccountCurrency(okex.SpotAccountParams{Currency: "USDT"})
-		fmt.Println(result, err)
 		if err != nil {
 			if count > 3 {
 				break
@@ -205,8 +206,6 @@ func (s *SampleSt) getUSDT() float64 {
 
 		s.usdt = result.Balance
 
-		fmt.Println("usdt balance :", s.usdt)
-
 		break
 	}
 
@@ -223,7 +222,6 @@ func (s *SampleSt) getETH() float64 {
 	for {
 		count++
 		result, err := s.client.SpotGetAccountCurrency(okex.SpotAccountParams{Currency: "ETH"})
-		fmt.Println(result, err)
 		if err != nil {
 			if count > 3 {
 				break
@@ -242,8 +240,6 @@ func (s *SampleSt) getETH() float64 {
 		}
 
 		s.eth = result.Balance
-
-		fmt.Println("eth balance :", s.eth)
 
 		break
 	}
@@ -272,8 +268,6 @@ func (s *SampleSt) touchMsg(typ protocol.KLineType) {
 	if !ok || len(kls) < 1 {
 		return
 	}
-
-	fmt.Println("touch status:", kls[0].Close, "usdt sig:", s.getUsdtSig(), "eth sig:", s.getEthSig())
 
 	if kls[0].Close <= s.buyPrice && s.getUsdtSig() {
 
