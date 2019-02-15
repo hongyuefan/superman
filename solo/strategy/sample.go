@@ -288,7 +288,7 @@ func (s *SampleSt) touchMsg(typ protocol.KLineType) {
 
 		rate := (kls[0].Close - s.buyPrice) / s.buyPrice * float64(100)
 
-		params = append(params, fmt.Sprintf("%2.2f", s.buyPrice), fmt.Sprintf("%2.2f", kls[0].Close), fmt.Sprintf("%2.2f", rate), config.T.Symbol)
+		params = append(params, fmt.Sprintf("%2.2f", s.sellPrice), fmt.Sprintf("%2.2f", kls[0].Close), fmt.Sprintf("%2.2f", rate), config.T.Symbol)
 
 		s.sendMsg(278086, params)
 
