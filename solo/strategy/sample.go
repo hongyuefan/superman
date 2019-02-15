@@ -273,7 +273,11 @@ func (s *SampleSt) touchMsg(typ protocol.KLineType) {
 		return
 	}
 
+	fmt.Println("touch status:", kls[0].Close, "usdt sig:", s.getUsdtSig(), "eth sig:", s.getEthSig())
+
 	if kls[0].Close <= s.buyPrice && s.getUsdtSig() {
+
+		fmt.Println("touch buy:", kls[0].Close, "usdt sig:", s.getUsdtSig(), "eth sig:", s.getEthSig())
 
 		params = append(params, fmt.Sprintf("%2.2f", s.buyPrice), fmt.Sprintf("%2.2f", kls[0].Close), config.T.Symbol)
 
@@ -285,6 +289,8 @@ func (s *SampleSt) touchMsg(typ protocol.KLineType) {
 	}
 
 	if kls[0].Close >= s.sellPrice && s.getEthSig() {
+
+		fmt.Println("touch sell:", kls[0].Close, "usdt sig:", s.getUsdtSig(), "eth sig:", s.getEthSig())
 
 		rate := (kls[0].Close - s.buyPrice) / s.buyPrice * float64(100)
 
