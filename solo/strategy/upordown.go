@@ -16,21 +16,24 @@ import (
 	"github.com/hongyuefan/superman/utils"
 )
 
-var TIMEOUT int64 = 300
+var MapTimeOut map[protocol.KLineType]int64 = map[protocol.KLineType]int64{protocol.SPIDER_TYPE_KLINE_5MIN: 301, protocol.SPIDER_TYPE_KLINE_15MIN: 901, protocol.SPIDER_TYPE_KLINE_30MIN: 1801, protocol.SPIDER_TYPE_KLINE_HOUR: 3601, protocol.SPIDER_TYPE_KLINE_DAY: 86401}
 
 type StratUpDown struct {
-	skl       *skeleton.Skeleton
-	lock      sync.RWMutex
-	touched   int64
-	chanClose chan bool
-	mapRate   map[protocol.KLineType]float64
+	skl          *skeleton.Skeleton
+	lock         sync.RWMutex
+	touched      map[protocol.KLineType]int64
+	chanClose    chan bool
+	mapRate      map[protocol.KLineType]float64
+	mapCountFlag map[int64]bool
 }
 
 func NewStratUpDown() *StratUpDown {
 	return &StratUpDown{
-		skl:       skeleton.NewSkeleton(),
-		chanClose: make(chan bool, 0),
-		mapRate:   make(map[protocol.KLineType]float64, 0),
+		skl:          skeleton.NewSkeleton(),
+		chanClose:    make(chan bool, 0),
+		mapRate:      make(map[protocol.KLineType]float64, 0),
+		touched:      make(map[protocol.KLineType]int64, 0),
+		mapCountFlag: make(map[int64]bool, 0),
 	}
 }
 
@@ -66,27 +69,27 @@ func (s *StratUpDown) OnClose() {
 
 }
 
-func (s *StratUpDown) setTouched(b int64) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	s.touched = b
-}
+//func (s *StratUpDown) setTouched(b int64) {
+//	s.lock.Lock()
+//	defer s.lock.Unlock()
+//	s.touched = b
+//}
 
-func (s *StratUpDown) getTouched() int64 {
-	s.lock.RLock()
-	defer s.lock.RUnlock()
-	return s.touched
-}
+//func (s *StratUpDown) getTouched() int64 {
+//	s.lock.RLock()
+//	defer s.lock.RUnlock()
+//	return s.touched
+//}
 
-func (s *StratUpDown) isOK() bool {
+func (s *StratUpDown) isOK(typ protocol.KLineType) bool {
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
 	now := time.Now().Unix()
 
-	if now-s.touched > TIMEOUT {
+	if now-s.touched[typ] > MapTimeOut[typ] {
 
-		s.touched = now
+		s.touched[typ] = now
 
 		return true
 	}
@@ -108,18 +111,23 @@ func (s *StratUpDown) initRates(ss string) {
 		switch index {
 		case 0:
 			s.mapRate[protocol.SPIDER_TYPE_KLINE_5MIN] = nRate
+			s.touched[protocol.SPIDER_TYPE_KLINE_5MIN] = 0
 			break
 		case 1:
 			s.mapRate[protocol.SPIDER_TYPE_KLINE_15MIN] = nRate
+			s.touched[protocol.SPIDER_TYPE_KLINE_15MIN] = 0
 			break
 		case 2:
 			s.mapRate[protocol.SPIDER_TYPE_KLINE_30MIN] = nRate
+			s.touched[protocol.SPIDER_TYPE_KLINE_30MIN] = 0
 			break
 		case 3:
 			s.mapRate[protocol.SPIDER_TYPE_KLINE_HOUR] = nRate
+			s.touched[protocol.SPIDER_TYPE_KLINE_HOUR] = 0
 			break
 		case 4:
 			s.mapRate[protocol.SPIDER_TYPE_KLINE_DAY] = nRate
+			s.touched[protocol.SPIDER_TYPE_KLINE_DAY] = 0
 			break
 
 		}
@@ -152,13 +160,40 @@ func (s *StratUpDown) Handler(c *gin.Context) {
 
 func (s *StratUpDown) touchMsg(typ protocol.KLineType) {
 
-	kls, ok := s.skl.GetKline(typ, 2)
+	kls, ok := s.skl.GetKline(typ, 3)
 
 	if !ok || len(kls) < 2 {
 		return
 	}
 
 	rate := (kls[0].Close - kls[1].Close) / kls[1].Close * float64(100)
+
+	if typ == protocol.SPIDER_TYPE_KLINE_15MIN {
+
+		rate0 := (kls[1].Close - kls[2].Close) / kls[2].Close * float64(100)
+
+		if rate0 >= 0.1 {
+
+			s.mapCountFlag[kls[1].Time] = true
+
+			if len(s.mapCountFlag) >= 2 && s.isOK(typ) {
+
+				var params0 []string
+
+				params0 = append(params0, typ.String(), "连续上涨", "0.1", fmt.Sprintf("%2.2f", kls[0].Close), config.T.Symbol)
+
+				mobiles := utils.ParseStringToArry(config.T.Mobile, ",")
+
+				for _, mobile := range mobiles {
+					if err := utils.SendMsg(config.T.AppID, config.T.AppKey, "86", mobile, params0, config.T.TplId); err != nil {
+						logs.Error("send msg error:", err.Error())
+					}
+				}
+			}
+		} else {
+			s.mapCountFlag = make(map[int64]bool, 0)
+		}
+	}
 
 	if math.Abs(rate) >= s.mapRate[typ] {
 
@@ -175,7 +210,7 @@ func (s *StratUpDown) touchMsg(typ protocol.KLineType) {
 
 		mobiles := utils.ParseStringToArry(config.T.Mobile, ",")
 
-		if s.isOK() {
+		if s.isOK(typ) {
 			for _, mobile := range mobiles {
 				if err := utils.SendMsg(config.T.AppID, config.T.AppKey, "86", mobile, params, config.T.TplId); err != nil {
 					logs.Error("send msg error:", err.Error())
