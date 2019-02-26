@@ -172,7 +172,7 @@ func (s *StratUpDown) touchMsg(typ protocol.KLineType) {
 
 		rate0 := (kls[1].Close - kls[2].Close) / kls[2].Close * float64(100)
 
-		if rate0 >= 0.1 {
+		if rate0 >= 0.5 {
 
 			s.mapCountFlag[kls[1].Time] = true
 
